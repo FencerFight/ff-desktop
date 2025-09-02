@@ -70,7 +70,6 @@ export async function exportExcel(
     // Уведомление об успешном сохранении
     toast.success(i18n.t("fileSave"));
   } catch (error) {
-    console.error('Ошибка при экспорте Excel:', error);
     toast.error(i18n.t("fileFail"));
   }
 }

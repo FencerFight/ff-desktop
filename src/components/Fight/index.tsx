@@ -66,7 +66,7 @@ export default function FightScreen() {
   const checkCustomSounds = async () => {
     const b = await LocalStorage.getItem('bellSound')
     const s = await LocalStorage.getItem("isSounds")
-console.log("s", s)
+
     const baseURL = (url: string) => `http://localhost:9527/${url}`
     if (b) setBellUri(baseURL(b).replace(/\\/g, '/'));
     if (s) setIsSounds(JSON.parse(s))
