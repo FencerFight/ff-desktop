@@ -1,0 +1,36 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "*"
+  ],
+  "platforms": ["linux", "macOS", "windows"],
+  "permissions": [
+    "dialog:allow-open",
+    "fs:allow-copy-file",
+    "fs:read-all",
+    "fs:write-all",
+    {
+      "identifier": "fs:allow-copy-file",
+      "allow": [
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "$APPDATA/**" }]
+    },
+    "core:path:allow-resolve-directory",
+    "core:path:allow-join",
+    "core:path:default",
+    "dialog:allow-message",
+    "dialog:default"
+  ]
+}

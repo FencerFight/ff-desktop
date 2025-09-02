@@ -1,0 +1,84 @@
+.switchRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.switchLabel {
+  color: var(--fg);
+  flex: 1;
+  font-family: "OnestRegular", sans-serif;
+  font-size: 16px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+}
+
+.switchInput {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #767577;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 23px;
+  width: 23px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #f4f3f4;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.sliderActive {
+  background-color: var(--accent);
+}
+
+.sliderActive:before {
+  transform: translateX(20px);
+  background-color: var(--fg);
+}
+
+/* Focus styles for accessibility */
+.switchInput:focus + .slider {
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+}
+
+/* Hover effects */
+.slider:hover {
+  opacity: 0.9;
+}
+
+/* Disabled state */
+.switchInput:disabled + .slider {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .slider,
+  .slider:before {
+    transition: none;
+  }
+}

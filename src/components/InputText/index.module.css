@@ -1,0 +1,65 @@
+.input {
+  background-color: var(--surface-2);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: "OnestRegular", sans-serif;
+  border: 1px solid transparent;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.input:hover:not(:focus) {
+  border-color: var(--surface-2);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 40px;
+  line-height: 1.4;
+}
+
+/* Для браузеров, которые поддерживают autofill */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground-color);
+  -webkit-box-shadow: 0 0 0px 1000px var(--surface-2-color) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Состояние disabled */
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Убираем стрелки у number input в некоторых браузерах */
+.input[type="number"]::-webkit-outer-spin-button,
+.input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition: none;
+  }
+}

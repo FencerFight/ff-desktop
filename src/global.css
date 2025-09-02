@@ -1,0 +1,117 @@
+/* Глобальные переменные и сброс стилей */
+:root {
+  /* Цвета из ваших констант */
+  --accent: #FD5003;
+  --accent-transparent: #FD500333;
+  --bg: #000000;
+  --fg: #FFFFFF;
+  --surface: #221D1A;
+  --surface-2: #222;
+  --placeholder: #FFFFFF80;
+
+  /* Типография */
+  --font-regular: 'OnestRegular', -apple-system, sans-serif;
+  --font-medium: 'OnestMedium', -apple-system, sans-serif;
+  --font-semi-bold: 'OnestSemiBold', -apple-system, sans-serif;
+  --font-bold: 'OnestSansBold', -apple-system, sans-serif;
+}
+
+/* Сброс стилей */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: var(--fg);
+}
+
+@font-face {
+  font-family: 'OnestRegular';
+  src: url('/fonts/Onest-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OnestMedium';
+  src: url('/fonts/Onest-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OnestSemiBold';
+  src: url('/fonts/Onest-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OnestBold';
+  src: url('/fonts/Onest-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-regular);
+  background-color: var(--bg);
+  color: var(--foreground-color);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Глобальные стили для Tauri */
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Кастомный скроллбар */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  opacity: 0.8;
+}
+
+/* Убираем стандартные стили для кнопок и инпутов */
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

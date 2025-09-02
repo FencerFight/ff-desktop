@@ -1,0 +1,6 @@
+.pairItem {
+  background-color: var(--accent-transparent);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 6px;
+}

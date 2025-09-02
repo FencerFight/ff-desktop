@@ -1,0 +1,119 @@
+/* header.module.css */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--accent);
+  padding: 12px 20px;
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.navButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.navButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--accent-transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 14px;
+}
+
+.navButton:hover::before {
+  opacity: 0.1;
+}
+
+.navButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.navButton.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 25px var(--accent);
+}
+
+.navButton.active::before {
+  opacity: 0;
+}
+
+.navButton.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 30px var(--accent);
+}
+
+.navButton.active {
+  color: white;
+  font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .header {
+    padding: 10px 16px;
+  }
+
+  .nav {
+    gap: 8px;
+  }
+
+  .navButton {
+    padding: 10px 16px;
+    min-width: 70px;
+  }
+
+  .navLabel {
+    font-size: 11px;
+  }
+
+  .navButton svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navButton {
+    padding: 8px 12px;
+    min-width: 60px;
+    gap: 2px;
+  }
+
+  .navLabel {
+    font-size: 10px;
+  }
+
+  .navButton svg {
+    width: 20px;
+    height: 20px;
+  }
+}

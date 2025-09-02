@@ -1,0 +1,124 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: var(--surface, #fff);
+  transition: all 0.2s ease;
+}
+
+.container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.1);
+}
+
+.container:hover:not(.disabled) {
+  border-color: var(--accent);
+}
+
+/* Размеры */
+.size-small {
+  height: 32px;
+}
+
+.size-medium {
+  height: 40px;
+}
+
+.size-large {
+  height: 48px;
+}
+
+/* Кнопки */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 100%;
+  border: none;
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--surface-2, #f5f5f5);
+}
+
+.button:active:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.button:disabled {
+  color: var(--placeholder);
+  cursor: not-allowed;
+}
+
+/* Поле ввода */
+.input {
+  width: 60px;
+  height: 100%;
+  border: none;
+  background: none;
+  text-align: center;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--fg);
+  padding: 0 8px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input::placeholder {
+  color: var(--placeholder);
+}
+
+/* Состояние disabled */
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disabled .input {
+  cursor: not-allowed;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .size-small {
+    height: 28px;
+  }
+
+  .size-medium {
+    height: 36px;
+  }
+
+  .size-large {
+    height: 42px;
+  }
+
+  .button {
+    width: 28px;
+  }
+
+  .input {
+    width: 50px;
+    font-size: 14px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .container,
+  .button {
+    transition: none;
+  }
+}

@@ -1,0 +1,105 @@
+.container {
+  background-color: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  background-color: rgba(var(--fg), 0.07);
+  border-bottom: 1px solid rgba(var(--fg), 0.2);
+}
+
+.headerCell {
+  flex: 1;
+  padding: 16px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.headerText {
+  color: var(--accent);
+  font-family: "OnestBold", sans-serif;
+  font-size: 14px;
+}
+
+.body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  border-bottom: 1px solid rgba(var(--fg), 0.1);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.cell {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 60px;
+}
+
+.text {
+  color: var(--fg);
+  font-family: "OnestRegular", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.hint {
+  color: var(--placeholder);
+  font-family: "OnestRegular", sans-serif;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .headerCell {
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+
+  .cell {
+    padding: 12px 8px;
+    min-height: 50px;
+  }
+
+  .text {
+    font-size: 12px;
+  }
+
+  .hint {
+    font-size: 10px;
+  }
+}
+
+/* Стили для скролла */
+.body.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.body.scrollable::-webkit-scrollbar-track {
+  background: rgba(var(--fg), 0.1);
+  border-radius: 3px;
+}
+
+.body.scrollable::-webkit-scrollbar-thumb {
+  background: rgba(var(--fg), 0.3);
+  border-radius: 3px;
+}
+
+.body.scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--fg), 0.5);
+}
