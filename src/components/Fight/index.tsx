@@ -18,11 +18,16 @@ import {
   score2Atom,
   warnings1Atom,
   warnings2Atom,
-  winsAtom
+  historyAtom,
+  currentPoolIndexAtom,
+  isPlayoffAtom,
+  playoffAtom,
+  playoffIndexAtom,
+  playoffMatchIndexAtom,
 } from '@/store';
 import { LocalStorage, truncateFullName } from '@/utils/helpers';
 import { incWin } from '@/utils/incWin';
-import { History, Medal, Minus, Pause, Play, RefreshCw, Trophy, UsersRound } from 'lucide-react';
+import { History, Medal, Minus, Pause, Play, RefreshCw, UsersRound } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 import styles from './index.module.css';
@@ -30,12 +35,14 @@ import { useTranslation } from 'react-i18next';
 import ModalWindow from '@/components/ModalWindow';
 import SelectPair from '@/components/SelectPair';
 
+
 // Звуковые файлы (замените на ваши пути)
 let bellSound = new Howl({ src: ['/sounds/bell.mp3'] });
 
 export default function FightScreen() {
   const { t: translate } = useTranslation()
   const [currentPairIndex, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
+  const [currentPoolIndex] = useAtom(currentPoolIndexAtom);
   const [isRunning, setIsRunning] = useAtom(isRunningAtom);
   const [hitZones] = useAtom(hitZonesAtom);
   const [fightTime] = useAtom(fightTimeAtom);
@@ -46,20 +53,24 @@ export default function FightScreen() {
   const [warnings2, setWarnings2] = useAtom(warnings2Atom);
   const [score1, setScore1] = useAtom(score1Atom);
   const [score2, setScore2] = useAtom(score2Atom);
-  const [wins, setWins] = useAtom(winsAtom);
+  const [isPlayoff] = useAtom(isPlayoffAtom);
+  const isPlayOff = !isPlayoff.includes(false)
+  const [playoff, setPlayoff] = useAtom(playoffAtom)
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
+  const [history, setHistory] = useAtom(historyAtom)
   const [hotKeys] = useAtom(hotKeysAtom)
+  const [playoffIndex] = useAtom(playoffIndexAtom)
+  const [playoffMatchIndex] = useAtom(playoffMatchIndexAtom)
 
   const [isOpen, setIsOpen] = useState(false)
   const [isHistory, setIsHistory] = useState(false)
   const [timeLeft, setTimeLeft] = useState(fightTime);
   const [bellUri, setBellUri] = useState<string>("");
   const [isSounds, setIsSounds] = useState(true)
-  const [history, setHistory] = useState<{ score1: number, score2: number }[]>([])
-  const fighter1 = fighterPairs[currentPairIndex]?.[0]?.name || '';
-  const fighter2 = fighterPairs[currentPairIndex]?.[1]?.name || '';
-  const fighterId1 = fighterPairs[currentPairIndex]?.[0]?.id || '';
-  const fighterId2 = fighterPairs[currentPairIndex]?.[1]?.id || '';
+  const fighter1 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][0].name : fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[0]?.name || '';
+  const fighter2 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][1].name : fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[1]?.name || '';
+  const fighterId1 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][0].id: fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[0]?.id || '';
+  const fighterId2 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][1].id : fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[1]?.id || '';
   // @ts-ignore
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -75,19 +86,45 @@ export default function FightScreen() {
   const fightStop = () => {
       setIsRunning(false);
       const isDraw = score1 === score2;
+      const changePlayoffScores = () => {
+        setPlayoff(state=>{
+          const buf = [...state]
+          buf[playoffIndex][playoffMatchIndex][0] = {
+            ...buf[playoffIndex][playoffMatchIndex][0],
+            scores: score1,
+            wins: score1 > score2 ? 1 : 0,
+            differenceWinsLosses: score1 - score2
+          }
+          buf[playoffIndex][playoffMatchIndex][1] = {
+            ...buf[playoffIndex][playoffMatchIndex][1],
+            scores: score2,
+            wins: score1 < score2 ? 1 : 0,
+            differenceWinsLosses: score2 - score1
+          }
+          return buf
+        })
+      }
       if (!isDraw) {
         if (score1 > score2) {
-          incWin(fighterId1, fighterId2, currentPairIndex, setFighterPairs, warnings1, protests1, doubleHits);
-          incWin(fighterId2, fighterId1, currentPairIndex, setFighterPairs, warnings2, protests2, doubleHits, true);
-          setWins(prev => [prev[0] + 1, prev[1]]);
+          if (isPlayOff) {
+            changePlayoffScores()
+          } else {
+            incWin(score1, fighterId1, fighterId2, currentPairIndex[currentPoolIndex], currentPoolIndex, setFighterPairs, warnings1, protests1, doubleHits);
+            incWin(score2, fighterId2, fighterId1, currentPairIndex[currentPoolIndex], currentPoolIndex, setFighterPairs, warnings2, protests2, doubleHits, true);
+          }
         } else {
-          incWin(fighterId2, fighterId1, currentPairIndex, setFighterPairs, warnings2, protests2, doubleHits);
-          incWin(fighterId1, fighterId2, currentPairIndex, setFighterPairs, warnings1, protests1, doubleHits, true);
-          setWins(prev => [prev[0], prev[1] + 1]);
+          if (isPlayOff) {
+            changePlayoffScores()
+          } else {
+            incWin(score2, fighterId2, fighterId1, currentPairIndex[currentPoolIndex], currentPoolIndex, setFighterPairs, warnings2, protests2, doubleHits);
+            incWin(score1, fighterId1, fighterId2, currentPairIndex[currentPoolIndex], currentPoolIndex, setFighterPairs, warnings1, protests1, doubleHits, true);
+          }
         }
       } else {
-        incWin(fighterId1, fighterId2, currentPairIndex, setFighterPairs, warnings1, protests1, doubleHits, false, 1);
-        incWin(fighterId2, fighterId1, currentPairIndex, setFighterPairs, warnings2, protests2, doubleHits, false, 1);
+        if (!isPlayOff) {
+          incWin(score1, fighterId1, fighterId2, currentPairIndex[currentPoolIndex], currentPoolIndex, setFighterPairs, warnings1, protests1, doubleHits, false, 1);
+          incWin(score2, fighterId2, fighterId1, currentPairIndex[currentPoolIndex], currentPoolIndex, setFighterPairs, warnings2, protests2, doubleHits, false, 1);
+        }
       }
 
       toast.success(isDraw ? translate('draw') : `${translate('win')}: ${score1 > score2 ? fighter1 : fighter2}`, {
@@ -151,7 +188,6 @@ export default function FightScreen() {
     setWarnings2(0);
     setTimeLeft(fightTime);
     setIsRunning(false);
-    setWins([0, 0]);
     setHistory([])
     bellSound.stop();
   };
@@ -308,28 +344,18 @@ export default function FightScreen() {
       {/* НИЖНЯЯ ПАНЕЛЬ */}
       <div className={styles.bottomBar}>
         <div className={styles.winsBar}>
-          <div className={styles.winWrap}>
-            <span className={styles.winText}>{wins[0]}</span>
-            <Trophy size={28} color="var(--accent)" />
-          </div>
-
           <Counter
             label={translate('doubleHits')}
             value={doubleHits}
             onInc={setDoubleHits}
             onDec={setDoubleHits}
           />
-
-          <div className={styles.winWrap}>
-            <span className={styles.winText}>{wins[1]}</span>
-            <Trophy size={28} color="var(--accent)" />
-          </div>
         </div>
 
         <div className={styles.timer}>{format(timeLeft)}</div>
 
         <div className={styles.controls}>
-          <Button onClick={resetFight}>
+          <Button onClick={()=>{setIsRunning(false);setTimeLeft(fightTime);}}>
             <RefreshCw size={28} color="var(--fg)" />
           </Button>
           <Button onClick={()=>setIsOpen(true)}>
@@ -347,13 +373,13 @@ export default function FightScreen() {
         </div>
       </div>
       <ModalWindow isOpen={isOpen} onClose={()=>setIsOpen(false)}>
-        <SelectPair fighterPairs={fighterPairs} currentPairIndex={currentPairIndex} selectPair={(idx)=>setCurrentPairIndex(idx)} />
+        <SelectPair fighterPairs={fighterPairs} poolIndex={currentPoolIndex} currentPairIndex={currentPairIndex[currentPoolIndex]} selectPair={(idx)=>setCurrentPairIndex(state=>{const buf = [...state]; buf[currentPoolIndex] = idx; return buf})} />
       </ModalWindow>
       <ModalWindow isOpen={isHistory} onClose={()=>setIsHistory(false)}>
         <div className={styles.history}>
           {history.map((his, idx)=>(
             <button onClick={()=>{ setScore1(his.score1); setScore2(his.score2); setIsHistory(false) }} style={{ display: "flex", gap: "5px", width: "60px" }}>
-              <span style={{ color: "var(--placeholder)", alignItems: "flex-start", width: "15px" }}>{idx+1}.</span><span style={{ width: "35px" }}>{his.score1} : {his.score2}</span>
+              <span style={{ color: "var(--placeholder)", alignItems: "flex-start", width: "15px" }}>{idx+1}.</span><span style={{ width: "45px" }}>{his.score1} : {his.score2}</span>
             </button>
           ))}
         </div>

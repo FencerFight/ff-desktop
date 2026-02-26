@@ -1,14 +1,26 @@
 // utils/exportExcel.ts
-import { ParticipantType } from '@/typings';
+import { ParticipantPlayoffType, ParticipantType } from '@/typings';
 import i18n from './i18n';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import { save } from '@tauri-apps/plugin-dialog';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 
+function getTitleForBook(index: number, data: ParticipantType[][][]|ParticipantPlayoffType[][][]) {
+  switch(index) {
+    case data.length-1:
+      return i18n.t('finalAndThirdPlace')
+    case data.length-2:
+      return i18n.t('semifinal')
+    default:
+      return `1-${Math.pow(2, data.length - index)} ${i18n.t('final')}`
+  }
+}
+
 export async function exportExcel(
-  data: ParticipantType[][][],
-  fileName = 'tournament.xlsx'
+  data: ParticipantType[][][]|ParticipantPlayoffType[][][],
+  fileName = 'tournament.xlsx',
+  isPlayoff = false
 ) {
   try {
     const wb = XLSX.utils.book_new();
@@ -16,14 +28,16 @@ export async function exportExcel(
     /* заголовки */
     data.forEach((pair, i) => {
       const wsData: any[][] = [];
-      wsData.push([`${i + 1} ${i18n.t('stage')}`]);
+      wsData.push([isPlayoff ? getTitleForBook(i, data) : `${i + 1} ${i18n.t('stage')}`]);
       wsData.push([
         i18n.t('name'),
         i18n.t('warnings'),
         i18n.t('protests'),
+        i18n.t('score'),
         i18n.t('win'),
         i18n.t('doubleHits'),
         i18n.t('win'),
+        i18n.t('score'),
         i18n.t('protests'),
         i18n.t('warnings'),
         i18n.t('name')
@@ -34,9 +48,11 @@ export async function exportExcel(
           p1?.name || '',
           p1?.warnings?.toString() || '0',
           p1?.protests?.toString() || '0',
+          p1?.scores?.toString() || '0',
           p1?.wins?.toString() || '0',
           p1?.doubleHits?.toString() || '0',
           p2?.wins?.toString() || '0',
+          p2?.scores?.toString() || '0',
           p2?.protests?.toString() || '0',
           p2?.warnings?.toString() || '0',
           p2?.name || ''
@@ -44,7 +60,7 @@ export async function exportExcel(
       });
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-      XLSX.utils.book_append_sheet(wb, ws, `${i + 1} ${i18n.t('stage')}`);
+      XLSX.utils.book_append_sheet(wb, ws, isPlayoff ? getTitleForBook(i, data) : `${i + 1} ${i18n.t('stage')}`);
     });
 
     // Генерируем Excel файл

@@ -1,6 +1,21 @@
+.titleCenter {
+  text-align: center !important;
+}
+
 .pairItem {
   background-color: var(--accent-transparent);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 6px;
+  display: flex;
+  gap: 5px;
+}
+
+.pairItem [draggable=true] {
+    -webkit-user-drag: element;
+    user-drag: element;
+}
+
+.pairItem [draggable=true]:active {
+    cursor: grabbing;
 }

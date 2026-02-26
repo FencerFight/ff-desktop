@@ -37,8 +37,19 @@
   "stage": "тур",
   "stageEnd": "Окончить тур",
   "currentStage": "Текущий тур",
+  "pool": "Пул",
   "newVersion": "Доступна новая версия приложения",
   "updateBtn": "Кнопка обновления внизу настроек",
   "fileSave": "Файл успешно сохранен!",
-  "fileFail": "Ошибка при сохранении файла"
+  "fileFail": "Ошибка при сохранении файла",
+  "playoff": "Плей-офф",
+  "poolCountDelete": "Количество людей не прошедших в плей-офф",
+  "isPoolRating": "Выборка по пулу?",
+  "fileImportSuccess": "Файл успешно загружен",
+  "fileImportFail": "Ошибка при импорте файла",
+  "final": "Финал",
+  "finalAndThirdPlace": "Финал и 3 место",
+  "semifinal": "Полуфинал",
+  "matchThirdPlace": "Матч за 3 место",
+  "finalPlaces": "Итоговые места"
 }

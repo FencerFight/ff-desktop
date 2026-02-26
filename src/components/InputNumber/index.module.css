@@ -5,6 +5,7 @@
   border-radius: 6px;
   background-color: var(--surface, #fff);
   transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .container:focus-within {

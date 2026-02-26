@@ -37,8 +37,19 @@
   "stage": "stage",
   "stageEnd": "Finish stage",
   "currentStage": "Current stage",
+  "pool": "Pool",
   "newVersion": "New app version is available",
   "updateBtn": "Update button at the bottom of settings",
   "fileSave": "File has been saved successfully!",
-  "fileFail": "Error saving the file"
+  "fileFail": "Error saving the file",
+  "playoff": "Playoff",
+  "poolCountDelete": "The number of people who did not qualify for the playoffs",
+  "isPoolRating": "Pool selection?",
+  "fileImportSuccess": "The file was uploaded successfully",
+  "fileImportFail": "Error when importing a file",
+  "final": "Final",
+  "finalAndThirdPlace": "Final and 3rd place",
+  "semifinal": "Semifinal",
+  "matchThirdPlace": "Match for 3rd place",
+  "finalPlaces": "Final places"
 }

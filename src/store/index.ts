@@ -1,12 +1,12 @@
 // store.ts
-import { Gender, ParticipantType } from '@/typings';
+import { Gender, ParticipantPlayoffType, ParticipantType } from '@/typings';
 import { atom } from 'jotai';
 
-export const fightTimeDefault = 120;
+export const fightTimeDefault = 90;
 export const hitZonesDefault = {
   head: 3,
-  torso: 2,
-  arms: 2,
+  torso: 3,
+  arms: 1,
   legs: 1
 }
 export const fighterDefault: ParticipantType = {
@@ -14,6 +14,7 @@ export const fighterDefault: ParticipantType = {
   name: "—",
   gender: Gender.MALE,
   wins: 0,
+  scores: 0,
   losses: 0,
   draws: 0,
   warnings: 0,
@@ -23,14 +24,29 @@ export const fighterDefault: ParticipantType = {
   buchholz: 0
 }
 
+export const hotKeysDefault = {
+  plus1: "KeyQ",
+  minus1: "KeyA",
+  plus2: "BracketRight",
+  minus2: "Quote",
+  history: "KeyH",
+  start: "Space"
+}
+
+export const pairsDefault: ParticipantType[][][] = [[
+  // Массив пар бойцов по умолчанию
+  [{ ...fighterDefault, name: 'Fighter A', gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter B', gender: Gender.MALE }],
+  [{ ...fighterDefault, name: 'Fighter C', gender: Gender.FEMALE }, { ...fighterDefault, name: 'Fighter D', gender: Gender.FEMALE }]
+]]
+
 // Основные атомы таймера
 export const fightTimeAtom = atom(fightTimeDefault); // Время боя в секундах (по умолчанию 3 минуты)
 export const isRunningAtom = atom(false); // Состояние таймера (запущен/остановлен)
 export const languageAtom = atom<"en"|"ru"|"cn">('ru'); // Язык интерфейса ('en', 'ru', 'cn')
-export const sameGenderOnlyAtom = atom(false); // Сортировка по полу
-export const isSwissAtom = atom(false); // Швейцарская система
+export const sameGenderOnlyAtom = atom(true); // Сортировка по полу
+export const isSwissAtom = atom(true); // Швейцарская система
 
-export const winsAtom = atom([0, 0]); // Очки первого бойца
+export const historyAtom = atom<{ score1: number, score2: number }[]>([]);
 export const score1Atom = atom(0); // Количество очков 1 бойца
 export const score2Atom = atom(0); // Количество очков 2 бойца
 export const doubleHitsAtom = atom(0); // Флаг учета обоюдных попаданий
@@ -41,23 +57,30 @@ export const warnings2Atom = atom(0); // Счетчик предупрежден
 
 
 // Атомы для управления парами бойцов
-export const fighterPairsAtom = atom<ParticipantType[][]>([
-  // Массив пар бойцов по умолчанию
-  [{ ...fighterDefault, name: 'Fighter A', gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter B', gender: Gender.MALE }],
-  [{ ...fighterDefault, name: 'Fighter C', gender: Gender.FEMALE }, { ...fighterDefault, name: 'Fighter D', gender: Gender.FEMALE }]
-]);
+export const fighterPairsAtom = atom(pairsDefault);
 
-export const duelsAtom = atom<ParticipantType[][][]>([])
+export const poolsAtom = atom(pairsDefault);
+
+export const duelsAtom = atom<ParticipantType[][][][]>([[]])
 
 export const hitZonesAtom = atom(hitZonesDefault);
 
-export const hotKeysAtom = atom({
-  plus1: "KeyQ",
-  minus1: "KeyA",
-  plus2: "BracketRight",
-  minus2: "Quote",
-  history: "KeyH",
-  start: "Space"
-})
+export const hotKeysAtom = atom(hotKeysDefault)
 
-export const currentPairIndexAtom = atom(0); // Индекс текущей выбранной пары
+export const currentPairIndexAtom = atom([0]); // Индекс текущей выбранной пары
+
+export const currentPoolIndexAtom = atom(0); // Индекс текущего пула
+
+export const isPlayoffAtom = atom<boolean[]>([]); // Содержит информацию об окончании битв в пулах
+
+export const playoffAtom = atom<ParticipantPlayoffType[][][]>([]);
+
+export const poolCountDeleteAtom = atom(1);
+
+export const isPoolRatingAtom = atom(true);
+
+export const playoffIndexAtom = atom(0);
+
+export const playoffMatchIndexAtom = atom(0);
+
+export const participantsAtom = atom<ParticipantType[][]>([[]])

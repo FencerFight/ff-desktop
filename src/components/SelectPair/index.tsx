@@ -2,24 +2,24 @@ import { ParticipantType } from "@/typings"
 import Section from "../Section"
 import Button from "../Button"
 import styles from "./index.module.css"
-import { onlySurname } from "@/utils/helpers"
+import { getName } from "@/utils/helpers"
 import { useTranslation } from "react-i18next"
 
 type SelectPairProps = {
-    fighterPairs: ParticipantType[][];
+    poolIndex: number;
+    fighterPairs: ParticipantType[][][];
     currentPairIndex: number;
     selectPair: (idx: number) => void
 }
 
-export default function SelectPair({ fighterPairs, currentPairIndex, selectPair }:SelectPairProps) {
+export default function SelectPair({ fighterPairs, poolIndex, currentPairIndex, selectPair }:SelectPairProps) {
     const { t } = useTranslation()
-    const getName = (name: string) => name.length <= 14 ? name : onlySurname(name, 14)
 
     return (
         <>
-          {fighterPairs[0] && fighterPairs[0][0] ?
-          <Section title={t('pairs')}>
-            {fighterPairs.map((pair, idx) => (
+          {fighterPairs[poolIndex] && fighterPairs[poolIndex][0] && fighterPairs[poolIndex][0][0] ?
+          <Section title={t('pairs') + ": " + t("pool") + " " + (poolIndex+1).toString()}>
+            {fighterPairs[poolIndex].map((pair, idx) => (
               <Button
               key={idx}
               className={styles.pairItem}

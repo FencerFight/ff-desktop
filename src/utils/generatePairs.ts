@@ -5,11 +5,12 @@ export const generatePairs = (
   participants: ParticipantType[],
   sameGenderOnly: boolean,
   isSwiss: boolean,
-  setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][]>>,
-  setCurrentPairIndex: React.Dispatch<React.SetStateAction<number>>
-): ParticipantType[][] => {
+  poolIndex: number,
+  setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>,
+  setCurrentPairIndex: React.Dispatch<React.SetStateAction<number[]>>
+): ParticipantType[][][] => {
 
-  let pairs: ParticipantType[][] = [];
+  let pairs: ParticipantType[][][] = [];
 
   /* ---------- ОЛИМПИЙСКАЯ ---------- */
   if (!isSwiss) {
@@ -17,10 +18,12 @@ export const generatePairs = (
 
     const filter = (group: ParticipantType[]) => {
       for (let i = 0; i < group.length - 1; i += 2) {
-        pairs.push([group[i], group[i + 1]]);
+        if (!pairs[poolIndex])
+          pairs[poolIndex] = []
+        pairs[poolIndex].push([group[i], group[i + 1]]);
       }
       if (group.length % 2 !== 0) {
-        pairs.push([
+        pairs[poolIndex].push([
           group[group.length - 1],
           {
             ...fighterDefault,
@@ -94,11 +97,31 @@ export const generatePairs = (
           used.add(p1.id);
         }
       }
-      pairs.push(...tempPairs);
+      if (!pairs[poolIndex])
+        pairs[poolIndex] = []
+      pairs[poolIndex].push(...tempPairs);
     });
   }
 
-  setFighterPairs(pairs);
-  setCurrentPairIndex(0);
+  // СОРТИРОВКА: пары с "—" в конец массива
+  if (pairs[poolIndex] && pairs[poolIndex].length > 0) {
+    pairs[poolIndex] = pairs[poolIndex].sort((a, b) => {
+      const aHasDash = a[0]?.name === "—" || a[1]?.name === "—";
+      const bHasDash = b[0]?.name === "—" || b[1]?.name === "—";
+
+      // Если у обоих есть "—" или у обоих нет "—", порядок не меняем
+      if (aHasDash === bHasDash) return 0;
+
+      // Если у a есть "—", а у b нет, a должно быть после b
+      return aHasDash ? 1 : -1;
+    });
+  }
+
+  setFighterPairs(state=>{
+    const buf = [...state]
+    buf[poolIndex] = pairs[poolIndex]
+    return buf
+  });
+  setCurrentPairIndex(state=>{ const buf = [...state]; buf[poolIndex] = 0; return buf });
   return pairs;
 };

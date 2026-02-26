@@ -1,5 +1,5 @@
-import { Mars, Plus, RefreshCw, Save, Trash2, Venus } from 'lucide-react';
-import { useEffect, useState } from "react";
+import { Mars, Plus, RefreshCw, Save, Trash2, Upload, Venus } from 'lucide-react';
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next"
 import styles from "./index.module.css"
 import { open } from '@tauri-apps/plugin-dialog';
@@ -9,9 +9,9 @@ import Button from '@/components/Button';
 import Section from '@/components/Section';
 import InputText from '@/components/InputText';
 import { GenderSwitch } from '@/components/GenderSwitch';
-import { LocalStorage } from '@/utils/helpers';
+import { generateId, getName, LocalStorage } from '@/utils/helpers';
 import { useAtom } from 'jotai';
-import { currentPairIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, hotKeysAtom, isSwissAtom, languageAtom, sameGenderOnlyAtom } from '@store';
+import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, hotKeysAtom, hotKeysDefault, isPlayoffAtom, isPoolRatingAtom, isSwissAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
 import { Gender, ParticipantType } from '@typings';
 import { langLabels } from '@constants';
 import toast from 'react-hot-toast';
@@ -20,26 +20,145 @@ import { generatePairs } from '@/utils/generatePairs';
 import InputNumber from '@/components/InputNumber';
 import TimePicker from '@/components/TimePicker';
 import SelectPair from '@/components/SelectPair';
+import { importExcel } from '@/utils/importExcel';
+import DirectP2P from '@/components/DirectP2P';
+
+type TrashPairProps = {
+  setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>;
+  setPools: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>;
+  setСurrentPoolIndex: React.Dispatch<React.SetStateAction<number>>;
+  setParticipants: Dispatch<SetStateAction<ParticipantType[][]>>;
+  setDuels: Dispatch<SetStateAction<ParticipantType[][][][]>>;
+  currentPoolIndex: number;
+  pool: number;
+}
+
+function PoolControllers({ setFighterPairs, setPools, setDuels, setСurrentPoolIndex, setParticipants, pool, currentPoolIndex }:TrashPairProps) {
+  const deleteHandler = ()=>{
+    setFighterPairs(state=>{ const buf = [...state].filter((_, index)=>index !== pool); return buf; });
+    setPools(state=>{ const buf = [...state].filter((_, index)=>index !== pool); return buf; });
+    setСurrentPoolIndex(state=>pool <= currentPoolIndex ? state-1 : state );
+    setParticipants(state=>{ const buf = [...state].filter((_, index)=>index !== pool); return buf;})
+  }
+
+  const importFile = async ()=>{
+    const res = await importExcel()
+    if (res) {
+      const [data, length] = res
+      const stateHandlerWrap = (onlyFirst: boolean) =>
+       (state: ParticipantType[][][]) => {
+        let firstList: ParticipantType[][] = []
+        const allLists: ParticipantType[][][] = []
+        if (onlyFirst) {
+          for (let i=0; i < Math.floor(data.length / length); i++) {
+            firstList.push([
+              {
+                ...fighterDefault,
+                scores: data[i][0].scores,
+                warnings: data[i][0].warnings,
+                protests: data[i][0].protests,
+                doubleHits: data[i][0].doubleHits,
+                wins: data[i][0].wins,
+                name: data[i][0].name,
+                id: data[i][0].id
+              },
+              {
+                ...fighterDefault,
+                scores: data[i][1].scores,
+                warnings: data[i][1].warnings,
+                protests: data[i][1].protests,
+                doubleHits: data[i][1].doubleHits,
+                wins: data[i][1].wins,
+                name: data[i][1].name,
+                id: data[i][1].id
+              }
+            ])
+          }
+        } else {
+          for (let i=0; i < data.length; i++) {
+            firstList.push([
+              {
+                ...fighterDefault,
+                scores: data[i][0].scores,
+                warnings: data[i][0].warnings,
+                protests: data[i][0].protests,
+                doubleHits: data[i][0].doubleHits,
+                wins: data[i][0].wins,
+                name: data[i][0].name,
+                id: data[i][0].id
+              },
+              {
+                ...fighterDefault,
+                scores: data[i][1].scores,
+                warnings: data[i][1].warnings,
+                protests: data[i][1].protests,
+                doubleHits: data[i][1].doubleHits,
+                wins: data[i][1].wins,
+                name: data[i][1].name,
+                id: data[i][1].id
+              }
+            ])
+            if ((i+1) % Math.floor(data.length / length) === 0) {
+              allLists.push([...firstList])
+              firstList = []
+            }
+          }
+        }
+        if (onlyFirst) {
+          const buf = [...state]
+          buf[pool] = firstList
+          return buf
+        } else {
+          return allLists
+        }
+      }
+      setFighterPairs(stateHandlerWrap(false))
+      setPools(stateHandlerWrap(true))
+      setDuels(state=>{
+        const buf = JSON.parse(JSON.stringify(state))
+        buf[pool] = stateHandlerWrap(false)(state[pool])
+        return buf
+      })
+      setParticipants(state=>{
+        const buf = [...state]
+        buf[pool] = stateHandlerWrap(true)([state])[pool].flat().filter(item=>item.name !== "—")
+        return buf
+      })
+    }
+  }
+
+  return (
+    <div className={styles.poolController}>
+      <Upload className={styles.trashIcon} onClick={importFile} />
+      {pool !== 0 ? <Trash2 className={styles.trashIcon} onClick={deleteHandler} /> : <></>}
+    </div>
+  )
+}
 
 function App() {
   const { t, i18n } = useTranslation()
   /* ---------- атомы ---------- */
+  const [poolCountDelete, setPoolCountDelete] = useAtom(poolCountDeleteAtom)
+  const [isPoolRating, setIsPoolRating] = useAtom(isPoolRatingAtom)
   const [fightTime, setFightTime] = useAtom(fightTimeAtom);
   const [hitZones, setHitZones] = useAtom(hitZonesAtom);
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
+  const [pools, setPools] = useAtom(poolsAtom);
   const [currentPairIndex, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
+  const [currentPoolIndex, setСurrentPoolIndex] = useAtom(currentPoolIndexAtom);
   const [language, setLanguage] = useAtom(languageAtom);
   const [sameGenderOnly, setSameGenderOnly] = useAtom(sameGenderOnlyAtom);
   const [isSwiss, setIsSwiss] = useAtom(isSwissAtom);
   const [, setDuels] = useAtom(duelsAtom);
   const [hotKeys, setHotKeys] = useAtom(hotKeysAtom)
+  const [, setIsPlayoff] = useAtom(isPlayoffAtom)
+  const [participants, setParticipants] = useAtom(participantsAtom);
 
   /* ---------- состояние ---------- */
   const [newName, setNewName] = useState('');
-  const [participants, setParticipants] = useState<ParticipantType[]>([]);
   const [gender, setGender] = useState<Gender>(Gender.MALE);
   const [isSounds, setIsSounds] = useState(true)
-  const [fighterId, setFighterId] = useState(0)
+  const [showP2P, setShowP2P] = useState(false);
   const hotKeysActions = [t("addScoreRed"), t("removeScoreRed"), t("addScoreBlue"), t("removeScoreBlue"), t("history"), t("start")]
   /* ---------- загрузка ---------- */
   useEffect(() => {
@@ -54,7 +173,7 @@ function App() {
 
       if (t) setFightTime(Number(t));
       if (z) setHitZones(JSON.parse(z || '{}'));
-      if (p) setParticipants(JSON.parse(p || '[]'));
+      if (p && !participants[0].length) setParticipants(JSON.parse(p || '[]'));
       if (h) setHotKeys(JSON.parse(h || '[]'))
       if (s) setIsSounds(JSON.parse(s))
     })();
@@ -71,30 +190,51 @@ function App() {
 
   const selectPair = (idx: number) => {
     if (idx < 0 || idx >= fighterPairs.length) return;
-    setCurrentPairIndex(idx);
+    setCurrentPairIndex(state=>{const buf = [...state]; buf[currentPoolIndex] = idx; return buf});
   };
 
   /* ---------- участники ---------- */
   const addParticipant = () => {
     const name = newName.trim();
     if (!name) return;
-    setParticipants([...participants, { ...fighterDefault, name, gender, id: String(fighterId) }]);
-    setFighterId(state=>state+1)
+    setParticipants(state=>{
+      const buf = [...state];
+      buf[currentPoolIndex] = [...buf[currentPoolIndex], { ...fighterDefault, name, gender, id: generateId(name) }]
+      return buf
+    });
     setNewName('');
   };
   const removeParticipant = (idx: number) =>
-    setParticipants(participants.filter((_, i) => i !== idx));
+    setParticipants(state=>{
+      const buf = [...state];
+      buf[currentPoolIndex] = buf[currentPoolIndex].filter((_, i) => i !== idx)
+      return buf;
+    });
 
   const genPairs = () => {
-    let newParticipants = participants
+    let newParticipants = [...participants]
 
-    if (newParticipants.length < 2) {
+    if (newParticipants[currentPoolIndex].length < 2) {
       toast.error(t('addTwoFighters'));
       return;
     }
 
-    setDuels([])
-    generatePairs(newParticipants, sameGenderOnly, isSwiss, setFighterPairs, setCurrentPairIndex)
+    setDuels(state=>{
+      const buf = JSON.parse(JSON.stringify(state))
+      buf[currentPoolIndex] = []
+      return buf
+    })
+    setIsPlayoff(state=>{
+      const buf = [...state]
+      buf[currentPoolIndex] = false
+      return buf
+    })
+    const pairs = generatePairs(newParticipants[currentPoolIndex], sameGenderOnly, isSwiss, currentPoolIndex, setFighterPairs, setCurrentPairIndex)
+    setPools(state=>{
+      const buf = [...state]
+      buf[currentPoolIndex] = pairs[currentPoolIndex]
+      return buf
+    });
   };
 
   /* ---------- звуки ---------- */
@@ -147,6 +287,7 @@ function App() {
   const resetAll = async () => {
     setFightTime(fightTimeDefault)
     setHitZones(hitZonesDefault)
+    setHotKeys(hotKeysDefault)
     await deleteCustomSounds("all")
     await LocalStorage.clear();
 
@@ -172,6 +313,20 @@ function App() {
 
   return (
     <div className={styles.container}>
+      <div className={styles.pool} style={{ paddingLeft: "30px" }}>
+        {pools.filter((_, idx)=>idx % 2 === 0).map((pairs, i)=>(
+          <Section title={t("pool") + " " + (i * 2 + 1).toString()} key={i}>
+           <PoolControllers pool={i * 2} currentPoolIndex={currentPoolIndex} setDuels={setDuels} setPools={setPools} setFighterPairs={setFighterPairs} setСurrentPoolIndex={setСurrentPoolIndex} setParticipants={setParticipants} />
+            {
+              pairs.map((pair, idx) => (
+                <span key={idx}>
+                  {`${getName(pair[0].name)} VS ${getName(pair[1].name)}`}
+                </span>
+              ))
+            }
+          </Section>
+        ))}
+      </div>
       <div className={styles.content}>
         {/* Кнопка смены языка */}
         <div className={styles.langRow}>
@@ -194,11 +349,11 @@ function App() {
 
           <GenderSwitch gender={gender} setGender={setGender} />
 
-          <Button className={styles.addBtn} onClick={addParticipant}>
+          <Button className={styles.addBtn} onClick={addParticipant} disabled={participants[currentPoolIndex].length > 6}>
             <Plus size={28} color="var(--fg)" />
           </Button>
 
-          {participants.map((p, idx) => (
+          {participants[currentPoolIndex].map((p, idx) => (
             <div key={idx} className={styles.participantRow}>
               <span className={styles.participantTxt}>{p.name}</span>
               {p.gender === Gender.MALE ?
@@ -214,17 +369,25 @@ function App() {
             </div>
             )
           )}
-          <div className={styles.genderRow}>
+          <div className={styles.genderRow} style={{ gap: "20px" }}>
             <div className={[styles.genderRow, { marginVertical: 0 }].join(" ")}>
               <Mars size={28} color="var(--fg)" />
-              <span className={styles.countTxt}>{participants.filter(p => p.gender === Gender.MALE).length}</span>
+              <span className={styles.countTxt}>{participants[currentPoolIndex].filter(p => p.gender === Gender.MALE).length}</span>
             </div>
             <div className={[styles.genderRow, { marginVertical: 0, marginLeft: 30 }].join(" ")}>
               <Venus size={28} color="var(--fg)" />
-              <span className={styles.countTxt}>{participants.filter(p => p.gender === Gender.FEMALE).length}</span>
+              <span className={styles.countTxt} style={{ marginLeft: "0px" }}>{participants[currentPoolIndex].filter(p => p.gender === Gender.FEMALE).length}</span>
             </div>
           </div>
 
+          <div className={styles.zoneRow}>
+            {t("pool")}
+            <InputNumber
+            value={currentPoolIndex + 1}
+            onChange={(pool)=>{ if (pool-1 === fighterPairs.length){ setFighterPairs(state=>[...state, ...pairsDefault]); setPools(state=>[...state, ...pairsDefault]); participants[pool-1] = []}; setParticipants(state=>[...state, []]); setCurrentPairIndex(state=>[...state, 0]); setСurrentPoolIndex(pool - 1)}}
+            min={1}
+            />
+          </div>
           <Switch title={t('sameGenderPairs')} value={sameGenderOnly} setValue={setSameGenderOnly} />
           <Switch title={t('swissSystem')} value={isSwiss} setValue={setIsSwiss} />
           </>
@@ -232,7 +395,12 @@ function App() {
           <Button style={{ marginTop: 10 }} onClick={genPairs} title={t('randomizePairs')} stroke />
         </Section>
 
-        <SelectPair fighterPairs={fighterPairs} currentPairIndex={currentPairIndex} selectPair={selectPair} />
+        <SelectPair
+        poolIndex={currentPoolIndex}
+        fighterPairs={fighterPairs}
+        currentPairIndex={currentPairIndex[currentPoolIndex]}
+        selectPair={selectPair}
+        />
         {/* --- 2. Длительность --- */}
         <Section title={t('fightDuration')}>
           <TimePicker
@@ -252,6 +420,9 @@ function App() {
               />
             </div>
           ))}
+          <Button onClick={()=>setHitZones(hitZonesDefault)} style={{ marginTop: 10 }} stroke>
+            <RefreshCw size={28} color="var(--fg)" />
+          </Button>
         </Section>
 
         {/* --- 4. Системные звуки --- */}
@@ -276,6 +447,26 @@ function App() {
               />
             </div>
           ))}
+          <Button onClick={()=>setHotKeys(hotKeysDefault)} style={{ marginTop: 10 }} stroke>
+            <RefreshCw size={28} color="var(--fg)" />
+          </Button>
+        </Section>
+
+        <Section title={t('pool')}>
+          <div className={styles.zoneRow}>
+            {t("poolCountDelete")}
+            <InputNumber
+            value={poolCountDelete}
+            onChange={setPoolCountDelete}
+            min={1}
+            />
+          </div>
+          <Switch title={t("isPoolRating")} value={isPoolRating} setValue={setIsPoolRating} />
+        </Section>
+
+        <Section title='P2P'>
+          <Button title={showP2P ? 'Скрыть P2P' : 'P2P Соединение'} onClick={() => setShowP2P(!showP2P)} />
+          {showP2P && <DirectP2P />}
         </Section>
 
         {/* --- 5. Сохранить --- */}
@@ -287,6 +478,20 @@ function App() {
             <RefreshCw size={28} color="var(--fg)" />
           </Button>
         </Section>
+      </div>
+      <div className={styles.pool} style={{ paddingRight: "30px" }}>
+        {pools.filter((_, idx)=>idx % 2 !== 0).map((pairs, i)=>(
+          <Section title={t("pool") + " " + ((i + 1) * 2).toString()} key={i}>
+            <PoolControllers pool={((i + 1) * 2)-1} currentPoolIndex={currentPoolIndex} setDuels={setDuels} setPools={setPools} setFighterPairs={setFighterPairs} setСurrentPoolIndex={setСurrentPoolIndex} setParticipants={setParticipants} />
+            {
+              pairs.map((pair, idx) => (
+                <span key={idx}>
+                  {`${getName(pair[0].name)} VS ${getName(pair[1].name)}`}
+                </span>
+              ))
+            }
+          </Section>
+        ))}
       </div>
     </div>
   );

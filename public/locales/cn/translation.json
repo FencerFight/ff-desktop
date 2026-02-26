@@ -37,8 +37,19 @@
   "stage": "阶段",
   "stageEnd": "完成舞台",
   "currentStage": "当前阶段",
+  "pool": "擂台",
   "newVersion": "应用程序的新版本可用",
   "updateBtn": "设置页面底部的更新按钮",
   "fileSave": "文件已成功保存",
-  "fileFail": "保存文件时出错"
+  "fileFail": "保存文件时出错",
+  "playoff": "季后赛",
+  "poolCountDelete": "没晋级季后赛的人数",
+  "isPoolRating": "擂台选择？",
+  "fileImportSuccess": "文件上传成功",
+  "fileImportFail": "导入文件时出错",
+  "final": "决赛",
+  "finalAndThirdPlace": "决赛和第三名",
+  "semifinal": "半决赛",
+  "matchThirdPlace": "第三名比赛",
+  "finalPlaces": "比赛的优胜者"
 }

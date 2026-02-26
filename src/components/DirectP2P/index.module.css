@@ -1,0 +1,201 @@
+/* components/index.module.css */
+.directP2P {
+  background: var(--accent-transparent);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  border: 1px solid var(--accent);
+}
+
+.title {
+  color: var(--fg);
+  font-family: "OnestBold", sans-serif;
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.connectionControls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.primaryButton {
+  background: var(--accent);
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+}
+
+.secondaryButton {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.qrControls {
+  display: flex;
+  gap: 10px;
+}
+
+.manualConnect {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manualConnect textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: monospace;
+  resize: vertical;
+}
+
+.qrContainer,
+.scannerContainer {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.qrContainer h4,
+.scannerContainer h4 {
+  color: var(--fg);
+  margin-bottom: 15px;
+}
+
+.scanner {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.connecting {
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--accent-transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.signalData {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.signalData h4 {
+  color: var(--fg);
+  margin-bottom: 10px;
+}
+
+.signalData textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.connected {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.statusBadge {
+  background: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: bold;
+  align-self: center;
+}
+
+.connectedControls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dangerButton {
+  background: #f44336;
+  color: white;
+}
+
+.syncActions {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.syncActions h4 {
+  color: var(--fg);
+  margin-bottom: 10px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.smallButton {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.messageLog {
+  margin-top: 20px;
+  border-top: 1px solid var(--accent);
+  padding-top: 15px;
+}
+
+.messageLog h4 {
+  color: var(--fg);
+  margin-bottom: 10px;
+}
+
+.logEntries {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.logEntry {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--fg);
+  word-break: break-word;
+}
+
+.logEntry:last-child {
+  border-bottom: none;
+}

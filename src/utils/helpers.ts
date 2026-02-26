@@ -26,3 +26,11 @@ export const LocalStorage = {
     localStorage.removeItem(STORAGE_PREFIX + key);
   }
 };
+
+export function getName(name: string) {
+  return name.length <= 14 ? name : onlySurname(name, 14)
+}
+
+export function generateId(name: string): string {
+  return `${name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}

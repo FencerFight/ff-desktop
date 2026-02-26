@@ -187,7 +187,7 @@ export default function TimePicker({
             disabled={disabled}
             aria-label="Увеличить минуты"
           >
-            <ChevronUp size={14} />
+            <ChevronUp size={14} color='var(--surface)' />
           </button>
           <button
             type="button"
@@ -196,7 +196,7 @@ export default function TimePicker({
             disabled={disabled}
             aria-label="Уменьшить минуты"
           >
-            <ChevronDown size={14} />
+            <ChevronDown size={14} color='var(--surface)' />
           </button>
         </div>
         <input
@@ -239,7 +239,7 @@ export default function TimePicker({
             disabled={disabled}
             aria-label="Увеличить секунды"
           >
-            <ChevronUp size={14} />
+            <ChevronUp size={14} color='var(--surface)' />
           </button>
           <button
             type="button"
@@ -248,7 +248,7 @@ export default function TimePicker({
             disabled={disabled}
             aria-label="Уменьшить секунды"
           >
-            <ChevronDown size={14} />
+            <ChevronDown size={14} color='var(--surface)' />
           </button>
         </div>
       </div>
