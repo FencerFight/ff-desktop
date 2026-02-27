@@ -9,7 +9,7 @@ import styles from './index.module.css';
 import InputText from '../InputText';
 import { useTranslation } from 'react-i18next';
 import { encodeToBase64, decodeFromBase64, generateId } from '@/utils/helpers';
-import { Users, Wifi, Copy, Download, Upload, RefreshCw, Power } from 'lucide-react';
+import { Users, Wifi } from 'lucide-react';
 
 const STUNservers: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -143,7 +143,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         addMessage(t('p2pSignalGenerated'));
       });
 
-      setupPeer(newPeer, serverId, clientId);
+      setupPeer(newPeer, serverId);
 
     } catch (error) {
       console.error('Error connecting to server:', error);
@@ -195,7 +195,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         addMessage(`${t('p2pAnswerGenerated')} ${clientId.substring(0, 8)}...`);
       });
 
-      setupPeer(newPeer, clientId, clientId);
+      setupPeer(newPeer, clientId);
 
     } catch (error) {
       console.error('Error accepting client:', error);
@@ -324,7 +324,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     }
   }, [peers, myPeerId]);
 
-  const setupPeer = (peer: any, peerId: string, clientId?: string) => {
+  const setupPeer = (peer: any, peerId: string) => {
     peer.on('connect', () => {
       addMessage(`${t('p2pConnected')} ${peerId.substring(0, 8)}...`);
 
