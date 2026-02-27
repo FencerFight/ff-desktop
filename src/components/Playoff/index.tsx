@@ -184,26 +184,6 @@ export default function Playoff({
     }
   }, [winners, playoff, onTournamentComplete]);
 
-  // Вспомогательная функция для расчета позиции соединения
-  const getNextRoundTarget = (
-    playoff: ParticipantPlayoffType[][][],
-    roundIndex: number,
-    matchIndex: number
-  ): { x: number; y: number } => {
-    const nextRound = playoff[roundIndex + 1];
-    if (!nextRound) return { x: 0, y: 50 };
-
-    // Находим, к какому матчу следующего раунда идет соединение
-    const targetMatchIndex = Math.floor(matchIndex / 2);
-
-    // Рассчитываем позицию целевого матча
-    const nextRoundMatches = nextRound.length;
-    const spacing = 100 / (nextRoundMatches + 1);
-    const yPosition = spacing * (targetMatchIndex + 1);
-
-    return { x: 140, y: yPosition };
-  };
-
   // Проверяем, можно ли создать следующий раунд
   const canGenerateNextRound = () => {
     if (playoff.length === 0 || champion) return false;
@@ -240,6 +220,16 @@ export default function Playoff({
     // Для раундов с более чем 2 парами всегда можно создать следующий
     return true;
   };
+
+  useEffect(()=>{
+    playoff.forEach((play, roundIndex)=>{
+      play.forEach((pair, matchIndex)=>{
+        if (pair[0].scores !== pair[1].scores) {
+          handleFighterClick(roundIndex, matchIndex, pair[0].scores > pair[1].scores ? 0 : 1)
+        }
+      })
+    })
+  }, [playoff])
 
   return (
   <div className={styles.container}>

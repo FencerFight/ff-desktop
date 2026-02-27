@@ -32,11 +32,13 @@
   background: transparent;
   border: 1px solid var(--accent);
   color: var(--accent);
+  width: 100%;
 }
 
 .qrControls {
   display: flex;
   gap: 10px;
+  justify-content: center;
 }
 
 .manualConnect {
@@ -58,6 +60,10 @@
 
 .qrContainer,
 .scannerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   margin-top: 20px;
   padding: 20px;
   background: var(--bg);

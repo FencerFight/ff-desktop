@@ -31,6 +31,19 @@
     "core:path:allow-join",
     "core:path:default",
     "dialog:allow-message",
-    "dialog:default"
+    "dialog:default",
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-close",
+    "core:window:allow-create",
+    "core:window:allow-center",
+    "core:window:allow-show",
+    "core:window:allow-destroy",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-title",
+    "core:window:default",
+    "core:event:allow-listen",
+    "core:event:allow-emit",
+    "core:event:allow-unlisten",
+    "core:event:default"
   ]
 }

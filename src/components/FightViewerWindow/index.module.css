@@ -1,0 +1,322 @@
+/* components/index.module.css */
+
+/* Контейнер для окна просмотра */
+.viewerContainer {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Onest', sans-serif;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Боковые стороны */
+.viewerSide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.viewerSide.red {
+  background: #8B0000;
+  border-right: 2px solid var(--accent-transparent);
+}
+
+.viewerSide.blue {
+  background: #00008B;
+  border-left: 2px solid var(--accent-transparent);
+}
+
+/* Имя бойца */
+.viewerName {
+  font-size: 3.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  line-height: 1.3;
+  color: var(--fg);
+  max-width: 80%;
+  word-wrap: break-word;
+  font-family: 'OnestBold', sans-serif;
+}
+
+.viewerName span {
+  display: block;
+}
+
+/* Счет бойца */
+.viewerScore {
+  font-size: 10rem;
+  font-weight: 900;
+  margin: 20px 0;
+  line-height: 1;
+  color: var(--fg);
+  font-family: 'OnestBold', sans-serif;
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
+}
+
+/* Статистика */
+.viewerStats {
+  display: flex;
+  gap: 40px;
+  margin-top: 40px;
+  background: var(--accent-transparent);
+  padding: 20px 40px;
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--accent);
+}
+
+.viewerStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.statLabel {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  color: var(--fg);
+  font-family: 'Onest', sans-serif;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--fg);
+  font-family: 'OnestBold', sans-serif;
+}
+
+/* Центральная панель */
+.viewerCenter {
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 30px 20px;
+  border-left: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}
+
+/* Таймер */
+.viewerTimer {
+  font-size: 5rem;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 30px;
+  font-family: 'OnestBold', monospace;
+  text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.5);
+}
+
+/* Обоюдки */
+.viewerDoubleHits {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: var(--accent-transparent);
+  padding: 15px 30px;
+  border-radius: 12px;
+  border: 1px solid var(--accent);
+}
+
+.doubleHitsLabel {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  color: var(--fg);
+  font-family: 'Onest', sans-serif;
+}
+
+.doubleHitsValue {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--accent);
+  font-family: 'OnestBold', sans-serif;
+}
+
+/* VS */
+.viewerVS {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  font-family: 'OnestBold', sans-serif;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  .viewerName {
+    font-size: 2.5rem;
+  }
+
+  .viewerScore {
+    font-size: 7rem;
+  }
+
+  .viewerTimer {
+    font-size: 4rem;
+  }
+
+  .viewerCenter {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .viewerContainer {
+    flex-direction: column;
+  }
+
+  .viewerSide {
+    padding: 20px;
+  }
+
+  .viewerName {
+    font-size: 2rem;
+  }
+
+  .viewerScore {
+    font-size: 5rem;
+  }
+
+  .viewerStats {
+    gap: 30px;
+    padding: 15px 30px;
+  }
+
+  .viewerCenter {
+    width: 100%;
+    flex-direction: row;
+    padding: 15px;
+    gap: 20px;
+    border-left: none;
+    border-right: none;
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .viewerTimer {
+    font-size: 3rem;
+    margin-bottom: 0;
+  }
+
+  .viewerDoubleHits {
+    margin-bottom: 0;
+    padding: 10px 20px;
+  }
+
+  .doubleHitsValue {
+    font-size: 2rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+}
+
+.winnerSide {
+  position: relative;
+  overflow: hidden;
+}
+
+.winnerSide::after {
+  content: '🏆';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 3rem;
+  opacity: 0.3;
+  transform: rotate(15deg);
+  animation: winnerGlow 2s infinite;
+}
+
+.viewerSide.blue.winnerSide::after {
+    right: 0;
+    top: 70px;
+    left: 20px;
+}
+
+.winnerAnnouncement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: slideIn 0.5s ease;
+  text-align: center;
+  padding: 20px;
+}
+
+.winnerTrophy {
+  font-size: 5rem;
+  margin-bottom: 10px;
+  animation: bounce 1s ease infinite;
+}
+
+.winnerText {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: gold;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px 20px;
+  border-radius: 50px;
+  backdrop-filter: blur(5px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+@keyframes winnerGlow {
+  0% { opacity: 0.3; transform: rotate(15deg) scale(1); }
+  50% { opacity: 0.6; transform: rotate(15deg) scale(1.1); }
+  100% { opacity: 0.3; transform: rotate(15deg) scale(1); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .winnerText {
+    font-size: 1.2rem;
+    max-width: 200px;
+  }
+
+  .winnerTrophy {
+    font-size: 3rem;
+  }
+}

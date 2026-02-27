@@ -34,3 +34,32 @@ export function getName(name: string) {
 export function generateId(name: string): string {
   return `${name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
+
+export function formatTime(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+};
+
+export const encodeToBase64 = (str: string): string => {
+  try {
+    // Для поддержки Unicode
+    const utf8Bytes = new TextEncoder().encode(str);
+    const binaryString = String.fromCharCode(...utf8Bytes);
+    return btoa(binaryString);
+  } catch (error) {
+    console.error('Error encoding to base64:', error);
+    return str;
+  }
+};
+
+export const decodeFromBase64 = (str: string): string => {
+  try {
+    const binaryString = atob(str);
+    const utf8Bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0));
+    return new TextDecoder().decode(utf8Bytes);
+  } catch (error) {
+    console.error('Error decoding from base64:', error);
+    return str;
+  }
+};

@@ -18,15 +18,6 @@
         "maximized": true,
         "label": "main",
         "url": "index.html"
-      },
-      {
-        "title": "FencerFight",
-        "width": 1200,
-        "height": 1000,
-        "maximized": true,
-        "label": "fight",
-        "url": "fight.html",
-        "visible": false
       }
     ],
     "security": {

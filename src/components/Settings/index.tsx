@@ -1,4 +1,4 @@
-import { Mars, Plus, RefreshCw, Save, Trash2, Upload, Venus } from 'lucide-react';
+import { Mars, PictureInPicture2, Plus, RefreshCw, Save, Trash2, Upload, Venus } from 'lucide-react';
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next"
 import styles from "./index.module.css"
@@ -22,6 +22,7 @@ import TimePicker from '@/components/TimePicker';
 import SelectPair from '@/components/SelectPair';
 import { importExcel } from '@/utils/importExcel';
 import DirectP2P from '@/components/DirectP2P';
+import { openFightViewerWindow } from '@/utils/windowManager';
 
 type TrashPairProps = {
   setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>;
@@ -112,16 +113,23 @@ function PoolControllers({ setFighterPairs, setPools, setDuels, setСurrentPoolI
           return allLists
         }
       }
-      setFighterPairs(stateHandlerWrap(false))
-      setPools(stateHandlerWrap(true))
+      setFighterPairs(state=>{
+        const buf = [...state]
+        buf[pool] = stateHandlerWrap(false)(state)[0]
+        return buf
+      })
+      setPools(state=>stateHandlerWrap(true)(state))
       setDuels(state=>{
         const buf = JSON.parse(JSON.stringify(state))
-        buf[pool] = stateHandlerWrap(false)(state[pool])
+        buf[pool] = []
+        buf[pool] = stateHandlerWrap(false)(buf[pool])
         return buf
       })
       setParticipants(state=>{
         const buf = [...state]
-        buf[pool] = stateHandlerWrap(true)([state])[pool].flat().filter(item=>item.name !== "—")
+        const virtualArr: ParticipantType[][][] = new Array(pool+1)
+        virtualArr[pool] = [...buf]
+        buf[pool] = stateHandlerWrap(true)(virtualArr)[pool].flat().filter(item=>item.name !== "—")
         return buf
       })
     }
@@ -349,11 +357,11 @@ function App() {
 
           <GenderSwitch gender={gender} setGender={setGender} />
 
-          <Button className={styles.addBtn} onClick={addParticipant} disabled={participants[currentPoolIndex].length > 6}>
+          <Button className={styles.addBtn} onClick={addParticipant} disabled={participants[currentPoolIndex]?.length > 6}>
             <Plus size={28} color="var(--fg)" />
           </Button>
 
-          {participants[currentPoolIndex].map((p, idx) => (
+          {participants[currentPoolIndex]?.map((p, idx) => (
             <div key={idx} className={styles.participantRow}>
               <span className={styles.participantTxt}>{p.name}</span>
               {p.gender === Gender.MALE ?
@@ -372,11 +380,11 @@ function App() {
           <div className={styles.genderRow} style={{ gap: "20px" }}>
             <div className={[styles.genderRow, { marginVertical: 0 }].join(" ")}>
               <Mars size={28} color="var(--fg)" />
-              <span className={styles.countTxt}>{participants[currentPoolIndex].filter(p => p.gender === Gender.MALE).length}</span>
+              <span className={styles.countTxt}>{participants[currentPoolIndex]?.filter(p => p.gender === Gender.MALE).length}</span>
             </div>
             <div className={[styles.genderRow, { marginVertical: 0, marginLeft: 30 }].join(" ")}>
               <Venus size={28} color="var(--fg)" />
-              <span className={styles.countTxt} style={{ marginLeft: "0px" }}>{participants[currentPoolIndex].filter(p => p.gender === Gender.FEMALE).length}</span>
+              <span className={styles.countTxt} style={{ marginLeft: "0px" }}>{participants[currentPoolIndex]?.filter(p => p.gender === Gender.FEMALE).length}</span>
             </div>
           </div>
 
@@ -384,7 +392,7 @@ function App() {
             {t("pool")}
             <InputNumber
             value={currentPoolIndex + 1}
-            onChange={(pool)=>{ if (pool-1 === fighterPairs.length){ setFighterPairs(state=>[...state, ...pairsDefault]); setPools(state=>[...state, ...pairsDefault]); participants[pool-1] = []}; setParticipants(state=>[...state, []]); setCurrentPairIndex(state=>[...state, 0]); setСurrentPoolIndex(pool - 1)}}
+            onChange={(pool)=>{ if (pool-1 === fighterPairs.length){ setFighterPairs(state=>[...state, ...pairsDefault]); setPools(state=>[...state, ...pairsDefault]); setParticipants(state=>[...state, []]); setCurrentPairIndex(state=>[...state, 0]); setDuels(state=>[...state, []]) }; setСurrentPoolIndex(pool - 1)}}
             min={1}
             />
           </div>
@@ -476,6 +484,9 @@ function App() {
           </Button>
           <Button onClick={resetAll} style={{ marginTop: 10 }} stroke>
             <RefreshCw size={28} color="var(--fg)" />
+          </Button>
+          <Button onClick={openFightViewerWindow} stroke>
+            <PictureInPicture2 size={28} color="var(--fg)" />
           </Button>
         </Section>
       </div>

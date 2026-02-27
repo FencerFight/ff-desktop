@@ -25,7 +25,7 @@ import {
   playoffIndexAtom,
   playoffMatchIndexAtom,
 } from '@/store';
-import { LocalStorage, truncateFullName } from '@/utils/helpers';
+import { formatTime, LocalStorage, truncateFullName } from '@/utils/helpers';
 import { incWin } from '@/utils/incWin';
 import { History, Medal, Minus, Pause, Play, RefreshCw, UsersRound } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -34,6 +34,7 @@ import styles from './index.module.css';
 import { useTranslation } from 'react-i18next';
 import ModalWindow from '@/components/ModalWindow';
 import SelectPair from '@/components/SelectPair';
+import { emit } from '@tauri-apps/api/event';
 
 
 // Звуковые файлы (замените на ваши пути)
@@ -67,10 +68,73 @@ export default function FightScreen() {
   const [timeLeft, setTimeLeft] = useState(fightTime);
   const [bellUri, setBellUri] = useState<string>("");
   const [isSounds, setIsSounds] = useState(true)
-  const fighter1 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][0].name : fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[0]?.name || '';
-  const fighter2 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][1].name : fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[1]?.name || '';
-  const fighterId1 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][0].id: fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[0]?.id || '';
-  const fighterId2 = isPlayOff ? playoff[playoffIndex][playoffMatchIndex][1].id : fighterPairs[currentPoolIndex][currentPairIndex[currentPoolIndex]]?.[1]?.id || '';
+  const [winner, setWinner] = useState("")
+  const [isFinished, setIsFinished] = useState(false)
+  const getFighterData = () => {
+    let name1 = '', name2 = '', id1 = '', id2 = '';
+
+    try {
+      if (isPlayOff) {
+        if (playoff?.[playoffIndex]?.[playoffMatchIndex]?.[0]) {
+          name1 = playoff[playoffIndex][playoffMatchIndex][0]?.name || '';
+          name2 = playoff[playoffIndex][playoffMatchIndex][1]?.name || '';
+          id1 = playoff[playoffIndex][playoffMatchIndex][0]?.id || '';
+          id2 = playoff[playoffIndex][playoffMatchIndex][1]?.id || '';
+        }
+      } else {
+        const currentIndex = currentPairIndex[currentPoolIndex];
+        if (fighterPairs?.[currentPoolIndex]?.[currentIndex]?.[0]) {
+          name1 = fighterPairs[currentPoolIndex][currentIndex]?.[0]?.name || '';
+          name2 = fighterPairs[currentPoolIndex][currentIndex]?.[1]?.name || '';
+          id1 = fighterPairs[currentPoolIndex][currentIndex]?.[0]?.id || '';
+          id2 = fighterPairs[currentPoolIndex][currentIndex]?.[1]?.id || '';
+        }
+      }
+    } catch (e) {
+      console.error('Ошибка получения данных бойцов:', e);
+    }
+
+    return { fighter1: name1, fighter2: name2, fighterId1: id1, fighterId2: id2 };
+  };
+
+  const { fighter1, fighter2, fighterId1, fighterId2 } = getFighterData();
+
+  useEffect(() => {
+    const sendDataToViewer = async () => {
+      try {
+        await emit('fight-data-updated', {
+          score1,
+          score2,
+          protests1,
+          protests2,
+          warnings1,
+          warnings2,
+          doubleHits,
+          timeLeft,
+          isRunning,
+          fighter1,
+          fighter2,
+          isPlayOff,
+          isFinished,
+          winner
+        });
+      } catch (error) {
+        console.error('Ошибка отправки данных:', error);
+      }
+    };
+
+    sendDataToViewer();
+  }, [
+    score1, score2,
+    protests1, protests2,
+    warnings1, warnings2,
+    doubleHits,
+    timeLeft,
+    isRunning,
+    fighter1,
+    fighter2,
+    isPlayOff
+  ]);
   // @ts-ignore
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -127,7 +191,10 @@ export default function FightScreen() {
         }
       }
 
-      toast.success(isDraw ? translate('draw') : `${translate('win')}: ${score1 > score2 ? fighter1 : fighter2}`, {
+      const winnerName = score1 > score2 ? fighter1 : fighter2
+      setWinner(winnerName)
+      setIsFinished(true)
+      toast.success(isDraw ? translate('draw') : `${translate('win')}: ${winnerName}`, {
         duration: 3000,
         style: {
           fontSize: '20px',
@@ -190,13 +257,6 @@ export default function FightScreen() {
     setIsRunning(false);
     setHistory([])
     bellSound.stop();
-  };
-
-  /* format time */
-  const format = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec < 10 ? '0' : ''}${sec}`;
   };
 
   /* helpers */
@@ -352,7 +412,11 @@ export default function FightScreen() {
           />
         </div>
 
-        <div className={styles.timer}>{format(timeLeft)}</div>
+        <div className={styles.timerWrap}>
+          <Button stroke title='-' onClick={()=>setTimeLeft(state=>state-1)} style={{ height: "20px", width: "10px", minWidth: "10px", marginTop: "-10px" }} />
+          <div className={styles.timer}>{formatTime(timeLeft)}</div>
+          <Button stroke title='+10' onClick={()=>setTimeLeft(state=>state+10)} style={{ height: "20px", width: "10px", minWidth: "10px", marginTop: "-10px" }} />
+        </div>
 
         <div className={styles.controls}>
           <Button onClick={()=>{setIsRunning(false);setTimeLeft(fightTime);}}>
@@ -373,7 +437,7 @@ export default function FightScreen() {
         </div>
       </div>
       <ModalWindow isOpen={isOpen} onClose={()=>setIsOpen(false)}>
-        <SelectPair fighterPairs={fighterPairs} poolIndex={currentPoolIndex} currentPairIndex={currentPairIndex[currentPoolIndex]} selectPair={(idx)=>setCurrentPairIndex(state=>{const buf = [...state]; buf[currentPoolIndex] = idx; return buf})} />
+        <SelectPair deleteEmptyPairs fighterPairs={fighterPairs} poolIndex={currentPoolIndex} currentPairIndex={currentPairIndex[currentPoolIndex]} selectPair={(idx)=>setCurrentPairIndex(state=>{const buf = [...state]; buf[currentPoolIndex] = idx; return buf})} />
       </ModalWindow>
       <ModalWindow isOpen={isHistory} onClose={()=>setIsHistory(false)}>
         <div className={styles.history}>

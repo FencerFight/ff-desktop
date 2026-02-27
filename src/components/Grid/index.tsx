@@ -139,7 +139,12 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
 
   return !playoff.length ? (
     <div className={styles.container}>
-        {!!winners.length &&
+        {!isEnd.includes(false) ?
+        <Button onClick={()=>setPlayoff(generatePlayoffPairs(duels, poolCountDelete, isPoolRating))} title={t('playoff')} style={{ width: "100%", marginBottom: "10px" }} />
+        :
+        <></>
+        }
+        {!!winners.length && !isSwiss &&
         <div className={styles.winners}>
             <span className={styles.winner}><span>2</span><span>{winners[1]}</span></span>
             <span className={styles.first}><span>1</span><span>{winners[0]}</span></span>
@@ -162,11 +167,6 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
           ) : <></>}
         </div>
       ))}
-      {!isEnd.includes(false) ?
-      <Button onClick={()=>setPlayoff(generatePlayoffPairs(duels, poolCountDelete, isPoolRating))} title={t('playoff')} style={{ width: "100%", marginBottom: "10px" }} />
-      :
-      <></>
-      }
         <Button onClick={() => exportExcel(duels[currentPoolIndex], `${t('pool') + " " + (currentPoolIndex+1)}.xlsx`)} style={{ width: "100%" }}>
             <Save size={28} />
         </Button>

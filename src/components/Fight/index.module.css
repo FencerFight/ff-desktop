@@ -87,6 +87,12 @@
   margin-bottom: 8px;
 }
 
+.timerWrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .controls {
   display: grid;
   justify-content: space-around;
