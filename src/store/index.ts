@@ -71,7 +71,7 @@ export const currentPairIndexAtom = atom([0]); // Индекс текущей в
 
 export const currentPoolIndexAtom = atom(0); // Индекс текущего пула
 
-export const isPlayoffAtom = atom<boolean[]>([]); // Содержит информацию об окончании битв в пулах
+export const isPlayoffAtom = atom<boolean[]>([false]); // Содержит информацию об окончании битв в пулах
 
 export const playoffAtom = atom<ParticipantPlayoffType[][][]>([]);
 

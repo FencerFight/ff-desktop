@@ -139,7 +139,7 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
 
   return !playoff.length ? (
     <div className={styles.container}>
-        {!isEnd.includes(false) ?
+        {!isEnd.includes(false) && isSwiss ?
         <Button onClick={()=>setPlayoff(generatePlayoffPairs(duels, poolCountDelete, isPoolRating))} title={t('playoff')} style={{ width: "100%", marginBottom: "10px" }} />
         :
         <></>
@@ -161,7 +161,7 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
               title={t('stageEnd')}
               onClick={genPairs}
               disabled={
-               !isSwiss && fighterPairs[currentPoolIndex].length !== fighterPairs[currentPoolIndex].filter(pairs=>pairs.filter(pair=>pair.wins && pair.name !== "—").length).length
+               fighterPairs[currentPoolIndex].filter(pair=>pair[0].name !== "—" && pair[1].name !== "—").length !== fighterPairs[currentPoolIndex].filter(pair=>(pair[0].wins || pair[1].wins) && pair[0].name !== "—" && pair[1].name !== "—").length
               }
             />
           ) : <></>}

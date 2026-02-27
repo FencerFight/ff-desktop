@@ -197,7 +197,6 @@ function App() {
   };
 
   const selectPair = (idx: number) => {
-    if (idx < 0 || idx >= fighterPairs.length) return;
     setCurrentPairIndex(state=>{const buf = [...state]; buf[currentPoolIndex] = idx; return buf});
   };
 
@@ -408,6 +407,8 @@ function App() {
         fighterPairs={fighterPairs}
         currentPairIndex={currentPairIndex[currentPoolIndex]}
         selectPair={selectPair}
+        onPairsReordered={setFighterPairs}
+        manualMode
         />
         {/* --- 2. Длительность --- */}
         <Section title={t('fightDuration')}>
