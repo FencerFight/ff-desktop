@@ -131,7 +131,7 @@ export default function FightViewerWindow() {
           <div className={styles.winnerAnnouncement}>
             <div className={styles.winnerTrophy}>🏆</div>
             <div className={styles.winnerText}>
-                {t('win')}:<br />{truncateFullName(fightData.winner, 15)}
+                {t('win')}<br />{truncateFullName(fightData.winner, 15)}
             </div>
           </div>
         ) : (

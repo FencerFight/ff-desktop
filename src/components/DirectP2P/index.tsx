@@ -8,7 +8,8 @@ import Button from '@/components/Button';
 import styles from './index.module.css';
 import InputText from '../InputText';
 import { useTranslation } from 'react-i18next';
-import { encodeToBase64, decodeFromBase64 } from '@/utils/helpers';
+import { encodeToBase64, decodeFromBase64, generateId } from '@/utils/helpers';
+import { Users, Wifi, Copy, Download, Upload, RefreshCw, Power } from 'lucide-react';
 
 const STUNservers: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -16,7 +17,6 @@ const STUNservers: RTCIceServer[] = [
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
-  // Альтернативные публичные STUN-серверы
   { urls: 'stun:stun.voipstunt.com:3478' },
   { urls: 'stun:stun.ekiga.net:3478' },
   { urls: 'stun:stun.ideasip.com:3478' },
@@ -24,16 +24,20 @@ const STUNservers: RTCIceServer[] = [
   { urls: 'stun:stun.voipbuster.com:3478' },
   { urls: 'stun:stun.1und1.de:3478' },
   { urls: 'stun:stun.gmx.net:3478' },
-
-  // Российские STUN-серверы
   { urls: 'stun:stun.rt.ru:3478' },
   { urls: 'stun:stun.mts.ru:3478' },
   { urls: 'stun:stun.sipnet.ru:3478' },
-
-  // Китайские STUN-серверы
   { urls: 'stun:stun.chinaunix.com:3478' },
   { urls: 'stun:stun.qq.com:3478' },
-]
+];
+
+interface PeerConnection {
+  peer: any;
+  peerId: string;
+  connected: boolean;
+  isServer: boolean;
+  clientId?: string;
+}
 
 interface DirectP2PProps {
   onPeerConnected?: () => void;
@@ -42,48 +46,76 @@ interface DirectP2PProps {
 export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
   const { t } = useTranslation();
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-  const [peerId, setPeerId] = useState<string>('');
+  const [myPeerId, setMyPeerId] = useState<string>('');
   const [remotePeerId, setRemotePeerId] = useState<string>('');
   const [answerSignal, setAnswerSignal] = useState<string>('');
   const [showQR, setShowQR] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
-  const [isInitiator, setIsInitiator] = useState<boolean>(false);
+  const [isServer, setIsServer] = useState<boolean>(false);
 
-  // Jotai атомы
+  const [peers, setPeers] = useState<Map<string, PeerConnection>>(new Map());
+  const [peerList, setPeerList] = useState<string[]>([]);
+  const [pendingSignals, setPendingSignals] = useState<Map<string, { signal: string, peer: any }>>(new Map());
+  const [copied, setCopied] = useState<string>('');
+
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
   const [duels, setDuels] = useAtom(duelsAtom);
   const [playoff, setPlayoff] = useAtom(playoffAtom);
   const [participants, setParticipants] = useAtom(participantsAtom);
   const [pools, setPools] = useAtom(poolsAtom);
 
-  const peerRef = useRef<any>(null);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
-  const remoteSignalRef = useRef<string>('');
+  const SimplePeerRef = useRef<any>(null);
 
-  // Динамический импорт simple-peer с полифиллами
   const initPeer = useCallback(async () => {
     try {
       if (typeof global === 'undefined') {
         window.global = window;
       }
 
-      const SimplePeer = (await import('simple-peer')).default;
-      return SimplePeer;
+      if (!SimplePeerRef.current) {
+        SimplePeerRef.current = (await import('simple-peer')).default;
+      }
+      return SimplePeerRef.current;
     } catch (error) {
       console.error('Failed to load simple-peer:', error);
-      addMessage(t('p2pLoadError') || '❌ P2P module loading error');
+      addMessage(t('p2pLoadError'));
       return null;
     }
   }, [t]);
 
-  // Создание P2P соединения как инициатор
-  const createPeer = useCallback(async () => {
+  const createServer = useCallback(async () => {
     const SimplePeer = await initPeer();
     if (!SimplePeer) return;
 
     try {
-      setIsInitiator(true);
+      setIsServer(true);
+      setConnectionStatus('connected');
+
+      const serverId = generateId('server');
+      setMyPeerId(serverId);
+
+      addMessage(t('p2pCreating'));
+      addMessage(`🆔 Server ID: ${serverId}`);
+
+    } catch (error) {
+      console.error('Error creating server:', error);
+      addMessage(`${t('p2pConnectionError')}: ${error}`);
+    }
+  }, [initPeer, t]);
+
+  const connectToServer = useCallback(async (serverId: string) => {
+    const SimplePeer = await initPeer();
+    if (!SimplePeer) return;
+
+    try {
+      setIsServer(false);
+      setConnectionStatus('connecting');
+      setMyPeerId(serverId);
+
+      addMessage(`🔌 ${t('p2pConnecting')} ${serverId}`);
+
       const newPeer = new SimplePeer({
         initiator: true,
         trickle: false,
@@ -92,47 +124,41 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         }
       });
 
-      setupPeer(newPeer);
-      peerRef.current = newPeer;
-      setConnectionStatus('connecting');
-      addMessage(t('p2pCreating') || 'Creating P2P connection...');
+      const clientId = generateId('client');
+
+      const peerConnection: PeerConnection = {
+        peer: newPeer,
+        peerId: serverId,
+        connected: false,
+        isServer: false,
+        clientId
+      };
+
+      setPeers(prev => new Map(prev.set(serverId, peerConnection)));
 
       newPeer.on('signal', (data: any) => {
         const signalString = JSON.stringify(data);
-        // Кодируем сигнал в base64
         const encodedSignal = encodeToBase64(signalString);
-        setPeerId(encodedSignal);
-        addMessage(t('p2pSignalGenerated') || '📱 Signal generated (base64), send it to another device');
-
-        if (remoteSignalRef.current) {
-          addMessage(t('p2pSendingSignal') || '📡 Sending signal to remote peer...');
-          // Декодируем перед отправкой
-          newPeer.signal(JSON.parse(decodeFromBase64(remoteSignalRef.current)));
-        }
+        setRemotePeerId(encodedSignal);
+        addMessage(t('p2pSignalGenerated'));
       });
 
+      setupPeer(newPeer, serverId, clientId);
+
     } catch (error) {
-      console.error('Error creating peer:', error);
-      addMessage(`${t('p2pConnectionError') || '❌ Connection error'}: ${error}`);
+      console.error('Error connecting to server:', error);
+      addMessage(`${t('p2pConnectionError')}: ${error}`);
     }
   }, [initPeer, t]);
 
-  // Подключение к существующему пиру
-  const connectToPeer = useCallback(async (signalData: string) => {
+  const acceptClientSignal = useCallback(async (clientSignal: string) => {
     const SimplePeer = await initPeer();
-    if (!SimplePeer) return;
+    if (!SimplePeer || !isServer) return;
 
     try {
-      setIsInitiator(false);
-      // Сохраняем закодированный сигнал
-      remoteSignalRef.current = signalData;
+      addMessage(t('p2pSendingSignal'));
 
-      if (peerRef.current) {
-        addMessage(t('p2pSendingAnswer') || '📡 Sending answer signal...');
-        // Декодируем перед отправкой
-        peerRef.current.signal(JSON.parse(decodeFromBase64(signalData)));
-        return;
-      }
+      const signal = JSON.parse(decodeFromBase64(clientSignal));
 
       const newPeer = new SimplePeer({
         initiator: false,
@@ -142,61 +168,177 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         }
       });
 
-      setupPeer(newPeer);
-      peerRef.current = newPeer;
-      setConnectionStatus('connecting');
-      addMessage(t('p2pConnecting') || 'Connecting to remote peer...');
+      const clientId = generateId('client');
 
-      setTimeout(() => {
-        addMessage(t('p2pSendingSignal') || '📡 Sending signal...');
-        // Декодируем перед отправкой
-        newPeer.signal(JSON.parse(decodeFromBase64(signalData)));
-      }, 100);
+      const peerConnection: PeerConnection = {
+        peer: newPeer,
+        peerId: clientId,
+        connected: false,
+        isServer: true,
+        clientId
+      };
+
+      setPeers(prev => new Map(prev.set(clientId, peerConnection)));
+      setPeerList(prev => [...prev, clientId]);
+
+      newPeer.signal(signal);
 
       newPeer.on('signal', (data: any) => {
         const signalString = JSON.stringify(data);
-        // Кодируем ответный сигнал
         const encodedSignal = encodeToBase64(signalString);
-        setRemotePeerId(encodedSignal);
-        addMessage(t('p2pAnswerGenerated') || '📱 Answer signal generated (base64), send it to initiator');
+
+        setPendingSignals(prev => new Map(prev.set(clientId, {
+          signal: encodedSignal,
+          peer: newPeer
+        })));
+
+        addMessage(`${t('p2pAnswerGenerated')} ${clientId.substring(0, 8)}...`);
       });
+
+      setupPeer(newPeer, clientId, clientId);
 
     } catch (error) {
-      console.error('Error connecting to peer:', error);
-      addMessage(`${t('p2pConnectionError') || '❌ Connection error'}: ${error}`);
+      console.error('Error accepting client:', error);
+      addMessage(`${t('p2pConnectionError')}: ${error}`);
     }
-  }, [initPeer, t]);
+  }, [initPeer, isServer, t]);
 
-  // Отправка ответного сигнала инициатору
-  const sendAnswerToInitiator = useCallback(() => {
-    if (answerSignal && peerRef.current && isInitiator) {
-      try {
-        addMessage(t('p2pSendingAnswer') || '📡 Sending answer signal to initiator...');
-        // Декодируем ответный сигнал перед отправкой
-        peerRef.current.signal(JSON.parse(decodeFromBase64(answerSignal)));
-        setAnswerSignal('');
-        addMessage(t('p2pAnswerSent') || '✅ Answer signal sent');
-      } catch (error) {
-        console.error('Error sending answer:', error);
-        addMessage(`${t('p2pAnswerError') || '❌ Error sending answer signal'}: ${error}`);
+  const acceptServerAnswer = useCallback(async (answerSignal: string, serverId: string) => {
+    const SimplePeer = await initPeer();
+    if (!SimplePeer || isServer) return;
+
+    try {
+      addMessage(t('p2pSendingAnswer'));
+
+      const signal = JSON.parse(decodeFromBase64(answerSignal));
+
+      const peerConn = peers.get(serverId);
+      if (!peerConn) {
+        addMessage('❌ No peer found for server');
+        return;
       }
+
+      peerConn.peer.signal(signal);
+
+      addMessage(t('p2pAnswerSent'));
+
+    } catch (error) {
+      console.error('Error accepting server answer:', error);
+      addMessage(`${t('p2pAnswerError')}: ${error}`);
     }
-  }, [answerSignal, isInitiator, t]);
+  }, [initPeer, isServer, peers, t]);
 
-  // Настройка обработчиков пира
-  const setupPeer = (peer: any) => {
-    peer.on('connect', () => {
-      setConnectionStatus('connected');
-      addMessage(t('p2pConnected') || '✅ P2P connection established!');
+  const sendFullDataToPeer = useCallback((peer: any, targetPeerId: string) => {
+    const dataToSend = {
+      type: 'full-sync',
+      fighterPairs,
+      participants,
+      pools,
+      duels,
+      playoff,
+      sourceId: isServer ? 'server' : myPeerId
+    };
 
-      sendData({
-        type: 'sync',
-        fighterPairs,
-        participants,
-        pools,
+    peer.send(JSON.stringify(dataToSend));
+    addMessage(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`);
+  }, [fighterPairs, participants, pools, duels, playoff, isServer, myPeerId, t]);
+
+  const sendPoolDataToPeer = useCallback((peer: any, targetPeerId: string, poolIndex: number) => {
+    const dataToSend = {
+      type: 'pool',
+      payload: {
+        poolIndex,
         duels,
-        playoff
+        fighterPairs,
+        pools,
+        participants
+      },
+      sourceId: isServer ? 'server' : myPeerId
+    };
+
+    peer.send(JSON.stringify(dataToSend));
+    addMessage(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`);
+  }, [fighterPairs, participants, pools, duels, isServer, myPeerId, t]);
+
+  const broadcastFullData = useCallback(() => {
+    if (peerList.length === 0) {
+      addMessage('⚠️ No peers connected');
+      return;
+    }
+
+    peers.forEach((conn, peerId) => {
+      if (conn.connected) {
+        sendFullDataToPeer(conn.peer, peerId);
+      }
+    });
+  }, [peers, peerList, sendFullDataToPeer]);
+
+  const broadcastPoolData = useCallback((poolIndex: number) => {
+    if (peerList.length === 0) {
+      addMessage('⚠️ No peers connected');
+      return;
+    }
+
+    peers.forEach((conn, peerId) => {
+      if (conn.connected) {
+        sendPoolDataToPeer(conn.peer, peerId, poolIndex);
+      }
+    });
+  }, [peers, peerList, sendPoolDataToPeer]);
+
+  const sendClientDataToServer = useCallback(() => {
+    const serverConn = Array.from(peers.values()).find(conn => conn.peerId === myPeerId);
+
+    if (serverConn?.connected) {
+      sendFullDataToPeer(serverConn.peer, myPeerId);
+      addMessage('📤 Your data sent to server');
+    } else {
+      addMessage('❌ No server connection found');
+    }
+  }, [peers, myPeerId, sendFullDataToPeer]);
+
+  const sendClientPoolToServer = useCallback((poolIndex: number) => {
+    const serverConn = Array.from(peers.values()).find(conn => conn.peerId === myPeerId);
+
+    if (serverConn?.connected) {
+      sendPoolDataToPeer(serverConn.peer, myPeerId, poolIndex);
+      addMessage(`📤 Pool ${poolIndex + 1} data sent to server`);
+    } else {
+      addMessage('❌ No server connection found');
+    }
+  }, [peers, myPeerId, sendPoolDataToPeer]);
+
+  const requestDataFromServer = useCallback(() => {
+    const serverConn = Array.from(peers.values()).find(conn => conn.peerId === myPeerId);
+
+    if (serverConn?.connected) {
+      const requestData = {
+        type: 'request-sync',
+        clientId: myPeerId,
+        requester: 'client'
+      };
+      serverConn.peer.send(JSON.stringify(requestData));
+      addMessage('📤 Requested data from server');
+    } else {
+      addMessage('❌ No server connection found');
+    }
+  }, [peers, myPeerId]);
+
+  const setupPeer = (peer: any, peerId: string, clientId?: string) => {
+    peer.on('connect', () => {
+      addMessage(`${t('p2pConnected')} ${peerId.substring(0, 8)}...`);
+
+      setPeers(prev => {
+        const updated = new Map(prev);
+        const conn = updated.get(peerId);
+        if (conn) {
+          conn.connected = true;
+          updated.set(peerId, conn);
+        }
+        return updated;
       });
+
+      setConnectionStatus('connected');
 
       if (onPeerConnected) {
         onPeerConnected();
@@ -206,7 +348,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     peer.on('data', (data: any) => {
       try {
         const parsed = JSON.parse(data.toString());
-        handleReceivedData(parsed);
+        handleReceivedData(parsed, peerId);
       } catch (error) {
         console.error('Error processing data:', error);
       }
@@ -214,42 +356,39 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
     peer.on('error', (err: Error) => {
       console.error('Peer error:', err);
-      addMessage(`${t('p2pError') || '❌ Error'}: ${err.message}`);
-      setConnectionStatus('disconnected');
+      addMessage(`${t('p2pError')} ${peerId.substring(0, 8)}...: ${err.message}`);
+
+      setPeers(prev => {
+        const updated = new Map(prev);
+        updated.delete(peerId);
+        return updated;
+      });
+      setPeerList(prev => prev.filter(id => id !== peerId));
     });
 
     peer.on('close', () => {
-      addMessage(t('p2pClosed') || 'Connection closed');
-      setConnectionStatus('disconnected');
-      peerRef.current = null;
-      setPeerId('');
-      setRemotePeerId('');
-      setAnswerSignal('');
-      setIsInitiator(false);
-      remoteSignalRef.current = '';
+      addMessage(`${t('p2pClosed')} ${peerId.substring(0, 8)}...`);
+
+      setPeers(prev => {
+        const updated = new Map(prev);
+        updated.delete(peerId);
+        return updated;
+      });
+      setPeerList(prev => prev.filter(id => id !== peerId));
     });
   };
 
-  // Отправка данных
-  const sendData = (data: any) => {
-    if (peerRef.current && connectionStatus === 'connected') {
-      peerRef.current.send(JSON.stringify(data));
-      addMessage(`${t('p2pDataSent') || '📤 Data sent'}: ${data.type}`);
-    }
-  };
-
-  // Обработка полученных данных
-  const handleReceivedData = (data: any) => {
-    addMessage(`${t('p2pDataReceived') || '📥 Data received'}: ${data.type}`);
+  const handleReceivedData = (data: any, fromPeerId: string) => {
+    addMessage(`${t('p2pDataReceived')} ${fromPeerId.substring(0, 8)}...: ${data.type}`);
 
     switch (data.type) {
-      case 'sync':
+      case 'full-sync':
         if (data.fighterPairs) setFighterPairs(data.fighterPairs);
-        if (data.duels) setDuels(data.duels);
         if (data.participants) setParticipants(data.participants);
         if (data.pools) setPools(data.pools);
+        if (data.duels) setDuels(data.duels);
         if (data.playoff) setPlayoff(data.playoff);
-        addMessage(t('p2pDataSynced') || '✅ Data synchronized');
+        addMessage(t('p2pDataSynced'));
         break;
 
       case 'pool':
@@ -275,28 +414,32 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
             buf[payload.poolIndex] = payload.pools[payload.poolIndex]
             return buf
           })
+          addMessage(`✅ Pool ${payload.poolIndex + 1} synchronized`);
         }
         break;
 
       case 'request-sync':
-        sendData({
-          type: 'sync',
-          fighterPairs,
-          pools,
-          participants,
-          duels,
-          playoff
-        });
+        if (isServer) {
+          addMessage(`📤 Server responding to sync request from ${fromPeerId.substring(0, 8)}...`);
+
+          const targetPeer = peers.get(fromPeerId);
+          if (targetPeer?.connected) {
+            sendFullDataToPeer(targetPeer.peer, fromPeerId);
+          } else {
+            addMessage(`❌ Could not find connection for client ${fromPeerId.substring(0, 8)}...`);
+          }
+        } else {
+          addMessage('⚠️ Received request-sync as client, ignoring');
+        }
         break;
 
       default:
-        alert(`${t('p2pUnknownType') || 'Unknown data type'}: ${data.type}`);
+        alert(`${t('p2pUnknownType')}: ${data.type}`);
     }
   };
 
-  // Инициализация сканера QR
   const startScanner = () => {
-    setShowScanner(true);
+    setShowScanner(!showScanner);
 
     setTimeout(() => {
       const scanner = new Html5QrcodeScanner(
@@ -306,7 +449,16 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       );
 
       scanner.render((decodedText) => {
-        connectToPeer(decodedText);
+        if (decodedText.startsWith('SERVER:')) {
+          const serverId = decodedText.replace('SERVER:', '');
+          connectToServer(serverId);
+        } else {
+          if (isServer) {
+            acceptClientSignal(decodedText);
+          } else {
+            acceptServerAnswer(decodedText, myPeerId);
+          }
+        }
         scanner.clear();
         setShowScanner(false);
       }, (error) => {
@@ -317,7 +469,6 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     }, 100);
   };
 
-  // Остановка сканера
   const stopScanner = () => {
     if (scannerRef.current) {
       scannerRef.current.clear();
@@ -326,76 +477,69 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     setShowScanner(false);
   };
 
-  // Синхронизация всех данных
-  const syncAllData = () => {
-    sendData({
-      type: 'sync',
-      fighterPairs,
-      participants,
-      pools,
-      duels,
-      playoff
+  const copyToClipboard = (text: string, type: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(type);
+    setTimeout(() => setCopied(''), 2000);
+    addMessage(`${t('p2pSignalCopied')}`);
+  };
+
+  const disconnectAll = () => {
+    peers.forEach((conn) => {
+      if (conn.peer) {
+        conn.peer.destroy();
+      }
     });
+
+    setPeers(new Map());
+    setPeerList([]);
+    setConnectionStatus('disconnected');
+    setIsServer(false);
+    setMyPeerId('');
+    setPendingSignals(new Map());
+    setRemotePeerId('');
+    setAnswerSignal('');
+    addMessage(t('p2pDisconnected'));
   };
 
-  // Запрос синхронизации
-  const requestSync = () => {
-    sendData({ type: 'request-sync' });
-  };
-
-  // Копирование сигнала в буфер обмена
-  const copySignalToClipboard = () => {
-    navigator.clipboard.writeText(peerId);
-    addMessage(t('p2pSignalCopied') || '📋 Signal copied to clipboard (base64)');
-  };
-
-  // Отключение
-  const disconnect = () => {
-    if (peerRef.current) {
-      peerRef.current.destroy();
-      peerRef.current = null;
-      setConnectionStatus('disconnected');
-      setPeerId('');
-      setRemotePeerId('');
-      setAnswerSignal('');
-      setIsInitiator(false);
-      remoteSignalRef.current = '';
-      addMessage(t('p2pDisconnected') || 'Disconnected');
-    }
-  };
-
-  // Добавление сообщения в лог
   const addMessage = (msg: string) => {
     setMessages(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
   };
 
-  // Очистка при размонтировании
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
         scannerRef.current.clear();
       }
-      if (peerRef.current) {
-        peerRef.current.destroy();
-      }
+      disconnectAll();
     };
   }, []);
 
+  const syncAllData = useCallback(() => {
+    if (isServer) {
+      broadcastFullData();
+    } else {
+      requestDataFromServer();
+    }
+  }, [isServer, broadcastFullData, requestDataFromServer]);
+
   return (
     <div className={styles.directP2P}>
-      <h3 className={styles.title}>{t('p2pDirectConnection') || 'Direct P2P Connection'}</h3>
+      <h3 className={styles.title}>
+        <Wifi size={20} /> {t('p2pDirectConnection')}
+      </h3>
 
       {connectionStatus === 'disconnected' && (
         <div className={styles.connectionControls}>
           <Button
-            title={t('p2pCreateInitiator') || 'Create connection (Initiator)'}
-            onClick={createPeer}
+            title={t('p2pCreateInitiator')}
+            onClick={createServer}
             className={styles.primaryButton}
           />
 
           <div className={styles.qrControls}>
             <Button
-              title={t('p2pScanQR') || 'Scan QR code'}
+              title={t('p2pScanQR')}
               onClick={startScanner}
               className={styles.secondaryButton}
             />
@@ -403,27 +547,44 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
           <div className={styles.manualConnect}>
             <InputText
-              placeholder={t('p2pPasteSignal') || 'Paste remote peer signal (base64)'}
+              placeholder={t('p2pPasteSignal')}
               value={remotePeerId}
               setValue={setRemotePeerId}
-              rows={5}
-              multiline
             />
             <Button
-              title={t('p2pConnect') || 'Connect'}
-              onClick={() => connectToPeer(remotePeerId)}
+              title={t('p2pConnect')}
+              onClick={() => connectToServer(remotePeerId)}
               disabled={!remotePeerId}
             />
           </div>
         </div>
       )}
 
-      {showQR && peerId && (
-        <div className={styles.qrContainer}>
-          <h4>{t('p2pScanQRToConnect') || 'Scan QR code to connect'}</h4>
-          <QRCode value={peerId} size={200} />
+      {isServer && myPeerId && (
+        <div className={styles.serverInfo}>
+          <h4>🎮 Server ID:</h4>
+          <div className={styles.serverId}>
+            <code>SERVER:{myPeerId}</code>
+            <Button
+              title={copied === 'server' ? '✓' : t('p2pCopySignal')}
+              onClick={() => copyToClipboard(`SERVER:${myPeerId}`, 'server')}
+              className={styles.smallButton}
+            />
+          </div>
           <Button
-            title={t('p2pHideQR') || 'Hide QR'}
+            title={t('p2pShowQR')}
+            onClick={() => setShowQR(!showQR)}
+            className={styles.secondaryButton}
+          />
+        </div>
+      )}
+
+      {showQR && myPeerId && (
+        <div className={styles.qrContainer}>
+          <h4>{t('p2pScanQRToConnect')}</h4>
+          <QRCode value={`SERVER:${myPeerId}`} size={200} />
+          <Button
+            title={t('p2pHideQR')}
             onClick={() => setShowQR(false)}
             className={styles.smallButton}
           />
@@ -432,118 +593,178 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
       {showScanner && (
         <div className={styles.scannerContainer}>
-          <h4>{t('p2pPointCamera') || 'Point camera at QR code'}</h4>
+          <h4>{t('p2pPointCamera')}</h4>
           <div id="qr-reader" className={styles.scanner}></div>
           <Button
-            title={t('p2pCloseScanner') || 'Close scanner'}
+            title={t('p2pCloseScanner')}
             onClick={stopScanner}
             className={styles.smallButton}
           />
         </div>
       )}
 
-      {connectionStatus === 'connecting' && (
-        <div className={styles.connecting}>
-          <div className={styles.spinner}></div>
-          <p>{t('p2pConnecting') || 'Connecting...'}</p>
+      {!isServer && remotePeerId && connectionStatus === 'connecting' && (
+        <div className={styles.signalSection}>
+          <h4>📤 {t('p2pSendThisSignal')}</h4>
+          <p className={styles.signalHelp}>
+            {t('p2pSendThisSignal')}:
+          </p>
+          <div className={styles.signalBox}>
+            <InputText
+              value={remotePeerId}
+              rows={5}
+              className={styles.signalText}
+            />
+            <Button
+              title={copied === 'client' ? '✓' : t('p2pCopySignal')}
+              onClick={() => copyToClipboard(remotePeerId, 'client')}
+              className={styles.copyButton}
+            />
+          </div>
+          <p className={styles.signalNote}>
+            {t('p2pSendAnswerToInitiator')}
+          </p>
+        </div>
+      )}
 
-          <Button
-            title={t('p2pShowQR') || 'Show QR code'}
-            onClick={() => setShowQR(!showQR)}
-            className={styles.secondaryButton}
-          />
-          {peerId && isInitiator && (
-            <div className={styles.signalData}>
-              <h4>{t('p2pSendThisSignal') || 'Send this signal to another device (base64):'}</h4>
-              <InputText
-                value={peerId}
-                rows={5}
-                multiline
-              />
-              <Button
-                title={t('p2pCopySignal') || 'Copy signal'}
-                onClick={copySignalToClipboard}
-                className={styles.smallButton}
-              />
-            </div>
-          )}
+      {!isServer && connectionStatus === 'connecting' && (
+        <div className={styles.answerSection}>
+          <h4>📥 {t('p2pPasteAnswer')}</h4>
+          <div className={styles.answerInput}>
+            <InputText
+              placeholder={t('p2pPasteAnswerHere')}
+              value={answerSignal}
+              setValue={setAnswerSignal}
+              rows={4}
+              multiline
+            />
+            <Button
+              title={t('p2pSendAnswer')}
+              onClick={() => acceptServerAnswer(answerSignal, myPeerId)}
+              disabled={!answerSignal}
+              className={styles.primaryButton}
+            />
+          </div>
+        </div>
+      )}
 
-          {remotePeerId && !isInitiator && (
-            <div className={styles.signalData}>
-              <h4>{t('p2pSendAnswerToInitiator') || 'Send this answer signal to initiator (base64):'}</h4>
-              <InputText
-                value={remotePeerId}
-                rows={5}
-                multiline
-              />
-              <Button
-                title={t('p2pCopyAnswer') || 'Copy answer signal'}
-                onClick={() => navigator.clipboard.writeText(remotePeerId)}
-                className={styles.smallButton}
-              />
+      {isServer && pendingSignals.size > 0 && (
+        <div className={styles.pendingSignals}>
+          <h4>📨 {t('p2pSendAnswerToInitiator')}</h4>
+          {Array.from(pendingSignals.entries()).map(([clientId, data]) => (
+            <div key={clientId} className={styles.pendingSignal}>
+              <div className={styles.pendingSignalHeader}>
+                <span>Client: {clientId.substring(0, 8)}...</span>
+                <Button
+                  title={copied === `answer-${clientId}` ? '✓' : t('p2pCopyAnswer')}
+                  onClick={() => copyToClipboard(data.signal, `answer-${clientId}`)}
+                  className={styles.smallButton}
+                />
+              </div>
+              <div className={styles.pendingSignalBody}>
+                <InputText
+                  value={data.signal}
+                  rows={4}
+                  className={styles.signalText}
+                />
+              </div>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {isInitiator && (
-            <div className={styles.signalData}>
-              <h4>{t('p2pPasteAnswer') || 'Paste answer signal from another device (base64):'}</h4>
-              <InputText
-                placeholder={t('p2pPasteAnswerHere') || 'Paste answer signal here (base64)'}
-                value={answerSignal}
-                setValue={setAnswerSignal}
-                rows={5}
-                multiline
-              />
-              <Button
-                title={t('p2pSendAnswer') || 'Send answer signal'}
-                onClick={sendAnswerToInitiator}
-                disabled={!answerSignal}
-                className={styles.primaryButton}
-              />
-            </div>
-          )}
+      {isServer && connectionStatus === 'connected' && (
+        <div className={styles.clientSignalInput}>
+          <h4>📥 {t('p2pPasteAnswer')}</h4>
+          <div className={styles.answerInput}>
+            <InputText
+              placeholder={t('p2pPasteAnswerHere')}
+              value={remotePeerId}
+              setValue={setRemotePeerId}
+              rows={4}
+              multiline
+            />
+            <Button
+              title={t('p2pSendAnswer')}
+              onClick={() => acceptClientSignal(remotePeerId)}
+              disabled={!remotePeerId}
+              className={styles.primaryButton}
+            />
+          </div>
+        </div>
+      )}
+
+      {peerList.length > 0 && (
+        <div className={styles.peersList}>
+          <h4><Users size={16} /> Connected Peers ({peerList.length})</h4>
+          <div className={styles.peerItems}>
+            {peerList.map(peerId => {
+              const conn = peers.get(peerId);
+              return (
+                <div key={peerId} className={styles.peerItem}>
+                  <span>🟢 {peerId.substring(0, 8)}...</span>
+                  {conn?.connected ? '✅' : '⏳'}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {connectionStatus === 'connected' && (
         <div className={styles.connected}>
-          <Button
-            title={t('p2pShowQR') || 'Show QR code'}
-            onClick={() => setShowQR(!showQR)}
-            className={styles.secondaryButton}
-          />
-
-          <div className={styles.statusBadge}>{t('p2pConnected') || '✅ Connected'}</div>
+          <div className={styles.statusBadge}>
+            {isServer ? '👑 Server' : '💻 Client'} • Connected
+          </div>
 
           <div className={styles.connectedControls}>
-            <Button title={t('p2pSyncAll') || 'Synchronize all data'} onClick={syncAllData} />
-            <Button title={t('p2pRequestSync') || 'Request synchronization'} onClick={requestSync} />
-            <Button title={t('p2pDisconnect') || 'Disconnect'} onClick={disconnect} className={styles.dangerButton} />
+            <Button
+              title={t('p2pSyncAll')}
+              onClick={syncAllData}
+              className={styles.primaryButton}
+            />
+
+            <Button
+              title={t('p2pDisconnect')}
+              onClick={disconnectAll}
+              className={styles.dangerButton}
+            />
           </div>
 
           <div className={styles.syncActions}>
-            <h4>{t('p2pQuickSync') || 'Quick sync:'}</h4>
+            <h4>{t('p2pQuickSync')}</h4>
             <div className={styles.actionButtons}>
-              {fighterPairs.map((_, poolIndex)=>(
+              {fighterPairs.map((_, poolIndex) => (
                 <Button
                   key={poolIndex}
-                  title={t("pool") + " " + (poolIndex+1)}
-                  onClick={() => sendData({ type: 'pool', payload: {
-                    poolIndex,
-                    duels,
-                    fighterPairs,
-                    pools,
-                    participants
-                  } })}
+                  title={`${t("pool")} ${poolIndex + 1}`}
+                  onClick={() => {
+                    if (isServer) {
+                      broadcastPoolData(poolIndex);
+                    } else {
+                      sendClientPoolToServer(poolIndex);
+                    }
+                  }}
+                  className={styles.secondaryButton}
                 />
               ))}
             </div>
           </div>
+
+          {!isServer && (
+            <div className={styles.clientControls}>
+              <Button
+                title={t('p2pSendMyDataToServer')}
+                onClick={sendClientDataToServer}
+                className={styles.secondaryButton}
+              />
+            </div>
+          )}
         </div>
       )}
 
       <div className={styles.messageLog}>
-        <h4>{t('p2pConnectionLog') || 'Connection log'}:</h4>
+        <h4>{t('p2pConnectionLog')}</h4>
         <div className={styles.logEntries}>
           {messages.map((msg, idx) => (
             <div key={idx} className={styles.logEntry}>{msg}</div>

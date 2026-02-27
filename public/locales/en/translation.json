@@ -32,7 +32,7 @@
   "draw": "Draw",
   "reset": "Initial settings",
   "sameGenderPairs": "Same-gender pairs only",
-  "swissSystem": "Swiss system",
+  "swissSystem": "Round Robin",
   "editTime": "Edit time",
   "stage": "stage",
   "stageEnd": "Finish stage",
@@ -53,7 +53,7 @@
   "matchThirdPlace": "Match for 3rd place",
   "finalPlaces": "Final places",
   "waitingForFight": "Waiting for fight...",
-    "p2pDirectConnection": "Direct P2P Connection",
+  "p2pDirectConnection": "Direct P2P Connection",
   "p2pCreateInitiator": "Create connection (Initiator)",
   "p2pShowQR": "Show QR code",
   "p2pScanQR": "Scan QR code",
@@ -93,5 +93,6 @@
   "p2pDataSynced": "✅ Data synchronized",
   "p2pUnknownType": "Unknown data type",
   "p2pSignalCopied": "📋 Signal copied to clipboard",
-  "p2pDisconnected": "Disconnected"
+  "p2pDisconnected": "Disconnected",
+  "p2pSendMyDataToServer": "📤 Send My Data to Server"
 }

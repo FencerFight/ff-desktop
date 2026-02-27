@@ -5,6 +5,9 @@
   padding: 24px;
   margin: 20px 0;
   border: 1px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .title {
@@ -26,6 +29,20 @@
   color: white;
   font-size: 16px;
   padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Onest", sans-serif;
+  transition: opacity 0.3s ease;
+}
+
+.primaryButton:hover {
+  opacity: 0.9;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .secondaryButton {
@@ -33,6 +50,71 @@
   border: 1px solid var(--accent);
   color: var(--accent);
   width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Onest", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.secondaryButton:hover {
+  background: var(--accent);
+  color: white;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dangerButton {
+  background: #f44336;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Onest", sans-serif;
+  transition: opacity 0.3s ease;
+}
+
+.dangerButton:hover {
+  opacity: 0.9;
+}
+
+.smallButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "Onest", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.smallButton:hover {
+  background: var(--accent);
+  color: white;
+}
+
+.copyButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "Onest", sans-serif;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.copyButton:hover {
+  background: var(--accent);
+  color: white;
 }
 
 .qrControls {
@@ -56,6 +138,13 @@
   color: var(--fg);
   font-family: monospace;
   resize: vertical;
+  font-size: 14px;
+}
+
+.manualConnect textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
 }
 
 .qrContainer,
@@ -69,12 +158,15 @@
   background: var(--bg);
   border-radius: 8px;
   text-align: center;
+  border: 1px solid var(--accent);
 }
 
 .qrContainer h4,
 .scannerContainer h4 {
   color: var(--fg);
   margin-bottom: 15px;
+  font-family: "Onest", sans-serif;
+  font-size: 16px;
 }
 
 .scanner {
@@ -105,11 +197,17 @@
 .signalData {
   margin-top: 20px;
   text-align: left;
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
 }
 
 .signalData h4 {
   color: var(--fg);
   margin-bottom: 10px;
+  font-family: "Onest", sans-serif;
+  font-size: 16px;
 }
 
 .signalData textarea {
@@ -122,6 +220,196 @@
   font-family: monospace;
   font-size: 12px;
   margin-bottom: 10px;
+  resize: vertical;
+}
+
+.signalData textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+}
+
+/* Новые стили для секций */
+.signalSection,
+.answerSection,
+.pendingSignals,
+.clientSignalInput,
+.serverInfo {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  margin-top: 15px;
+}
+
+.signalSection h4,
+.answerSection h4,
+.pendingSignals h4,
+.clientSignalInput h4,
+.serverInfo h4 {
+  color: var(--fg);
+  margin-bottom: 15px;
+  font-family: "Onest", sans-serif;
+  font-size: 16px;
+}
+
+.signalHelp {
+  color: var(--fg);
+  opacity: 0.8;
+  font-size: 14px;
+  margin-bottom: 10px;
+  font-family: "Onest", sans-serif;
+}
+
+.signalNote {
+  color: var(--fg);
+  opacity: 0.6;
+  font-size: 12px;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.signalBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.signalText {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.signalText:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+}
+
+.answerInput {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pendingSignals {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.pendingSignal {
+  background: var(--accent-transparent);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--accent);
+}
+
+.pendingSignal:last-child {
+  margin-bottom: 0;
+}
+
+.pendingSignalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pendingSignalHeader span {
+  color: var(--fg);
+  font-family: "Onest", sans-serif;
+  font-size: 14px;
+}
+
+.pendingSignalBody {
+  margin-top: 10px;
+}
+
+.pendingSignalBody textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 11px;
+  resize: vertical;
+}
+
+.serverInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.serverId {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--accent-transparent);
+  padding: 10px 15px;
+  border-radius: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.serverId code {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.peersList {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  margin-top: 15px;
+}
+
+.peersList h4 {
+  color: var(--fg);
+  margin-bottom: 15px;
+  font-family: "Onest", sans-serif;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.peerItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.peerItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--accent-transparent);
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+}
+
+.peerItem span {
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 13px;
 }
 
 .connected {
@@ -138,6 +426,8 @@
   text-align: center;
   font-weight: bold;
   align-self: center;
+  font-family: "Onest", sans-serif;
+  font-size: 14px;
 }
 
 .connectedControls {
@@ -147,20 +437,18 @@
   justify-content: center;
 }
 
-.dangerButton {
-  background: #f44336;
-  color: white;
-}
-
 .syncActions {
   background: var(--bg);
   padding: 15px;
   border-radius: 8px;
+  border: 1px solid var(--accent);
 }
 
 .syncActions h4 {
   color: var(--fg);
   margin-bottom: 10px;
+  font-family: "Onest", sans-serif;
+  font-size: 16px;
 }
 
 .actionButtons {
@@ -169,9 +457,10 @@
   flex-wrap: wrap;
 }
 
-.smallButton {
-  padding: 6px 12px;
-  font-size: 12px;
+.clientControls {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
 }
 
 .messageLog {
@@ -183,6 +472,8 @@
 .messageLog h4 {
   color: var(--fg);
   margin-bottom: 10px;
+  font-family: "Onest", sans-serif;
+  font-size: 16px;
 }
 
 .logEntries {
@@ -204,4 +495,32 @@
 
 .logEntry:last-child {
   border-bottom: none;
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+  .directP2P {
+    padding: 16px;
+  }
+
+  .qrControls {
+    flex-direction: column;
+  }
+
+  .connectedControls {
+    flex-direction: column;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .serverId {
+    flex-direction: column;
+  }
+
+  .pendingSignalHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

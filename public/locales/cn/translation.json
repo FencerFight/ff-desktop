@@ -32,7 +32,7 @@
   "draw": "平局",
   "reset": "初始设置",
   "sameGenderPairs": "仅限同性配对",
-  "swissSystem": "瑞士体系",
+  "swissSystem": "循环赛",
   "editTime": "编辑时间",
   "stage": "阶段",
   "stageEnd": "完成舞台",
@@ -53,7 +53,7 @@
   "matchThirdPlace": "第三名比赛",
   "finalPlaces": "比赛的优胜者",
   "waitingForFight": "等待战斗...",
-    "p2pDirectConnection": "直接P2P连接",
+  "p2pDirectConnection": "直接P2P连接",
   "p2pCreateInitiator": "创建连接（发起者）",
   "p2pShowQR": "显示二维码",
   "p2pScanQR": "扫描二维码",
@@ -93,5 +93,6 @@
   "p2pDataSynced": "✅ 数据已同步",
   "p2pUnknownType": "未知数据类型",
   "p2pSignalCopied": "📋 信号已复制到剪贴板",
-  "p2pDisconnected": "已断开连接"
+  "p2pDisconnected": "已断开连接",
+  "p2pSendMyDataToServer": "📤 将我的数据发送到服务器"
 }
