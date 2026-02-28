@@ -171,12 +171,14 @@ function App() {
   /* ---------- загрузка ---------- */
   useEffect(() => {
     (async () => {
-      const [t, z, p, h, s] = await Promise.all([
+      const [t, z, p, h, s, r, c] = await Promise.all([
         LocalStorage.getItem('fightTime'),
         LocalStorage.getItem('hitZones'),
         LocalStorage.getItem('participants'),
         LocalStorage.getItem('hotKeys'),
-        LocalStorage.getItem("isSounds")
+        LocalStorage.getItem("isSounds"),
+        LocalStorage.getItem("isPoolRating"),
+        LocalStorage.getItem("poolCountDelete")
       ]);
 
       if (t) setFightTime(Number(t));
@@ -184,6 +186,8 @@ function App() {
       if (p && !participants[0].length) setParticipants(JSON.parse(p || '[]'));
       if (h) setHotKeys(JSON.parse(h || '[]'))
       if (s) setIsSounds(JSON.parse(s))
+      if (r) setIsPoolRating(JSON.parse(r))
+      if (c) setPoolCountDelete(JSON.parse(c))
     })();
   }, []);
 
@@ -193,6 +197,8 @@ function App() {
     await LocalStorage.setItem('hitZones', JSON.stringify(hitZones));
     await LocalStorage.setItem('participants', JSON.stringify(participants));
     await LocalStorage.setItem('hotKeys', JSON.stringify(hotKeys));
+    await LocalStorage.setItem('isPoolRating', JSON.stringify(isPoolRating));
+    await LocalStorage.setItem('poolCountDelete', JSON.stringify(poolCountDelete));
     toast.success(t('settingsSaved'));
   };
 

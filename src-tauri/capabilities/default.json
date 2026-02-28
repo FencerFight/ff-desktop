@@ -27,6 +27,7 @@
       "identifier": "fs:allow-mkdir",
       "allow": [{ "path": "$APPDATA/**" }]
     },
+    "core:webview:allow-internal-toggle-devtools",
     "core:path:allow-resolve-directory",
     "core:path:allow-join",
     "core:path:default",
