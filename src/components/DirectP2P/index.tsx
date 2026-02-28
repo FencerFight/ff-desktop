@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { QRCodeCanvas as QRCode} from 'qrcode.react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAtom } from 'jotai';
-import { fighterPairsAtom, duelsAtom, playoffAtom, participantsAtom, poolsAtom } from '@/store';
+import { fighterPairsAtom, duelsAtom, playoffAtom, participantsAtom, poolsAtom, isPlayoffAtom } from '@/store';
 import Button from '@/components/Button';
 import styles from './index.module.css';
 import InputText from '../InputText';
@@ -64,11 +64,26 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
   const [playoff, setPlayoff] = useAtom(playoffAtom);
   const [participants, setParticipants] = useAtom(participantsAtom);
   const [pools, setPools] = useAtom(poolsAtom);
+  const [isPlayoff, setIsPlayoff] = useAtom(isPlayoffAtom);
+
+  const fighterPairsRef = useRef(fighterPairs);
+  const participantsRef = useRef(participants);
+  const poolsRef = useRef(pools);
+  const duelsRef = useRef(duels);
+  const playoffRef = useRef(playoff);
+  const isPlayoffRef = useRef(isPlayoff);
 
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const SimplePeerRef = useRef<any>(null);
 
-  const initPeer = useCallback(async () => {
+  useEffect(() => { fighterPairsRef.current = fighterPairs; }, [fighterPairs]);
+  useEffect(() => { participantsRef.current = participants; }, [participants]);
+  useEffect(() => { poolsRef.current = pools; }, [pools]);
+  useEffect(() => { duelsRef.current = duels; }, [duels]);
+  useEffect(() => { playoffRef.current = playoff; }, [playoff]);
+  useEffect(() => { isPlayoffRef.current = isPlayoff; }, [isPlayoff]);
+
+  const initPeer = async () => {
     try {
       if (typeof global === 'undefined') {
         window.global = window;
@@ -83,9 +98,9 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       addMessage(t('p2pLoadError'));
       return null;
     }
-  }, [t]);
+  }
 
-  const createServer = useCallback(async () => {
+  const createServer = async () => {
     const SimplePeer = await initPeer();
     if (!SimplePeer) return;
 
@@ -97,15 +112,15 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       setMyPeerId(serverId);
 
       addMessage(t('p2pCreating'));
-      addMessage(`🆔 Server ID: ${serverId}`);
+      addMessage(`🆔 ${t('p2pServerId')}: ${serverId}`);
 
     } catch (error) {
       console.error('Error creating server:', error);
       addMessage(`${t('p2pConnectionError')}: ${error}`);
     }
-  }, [initPeer, t]);
+  }
 
-  const connectToServer = useCallback(async (serverId: string) => {
+  const connectToServer = async (serverId: string) => {
     const SimplePeer = await initPeer();
     if (!SimplePeer) return;
 
@@ -149,9 +164,9 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       console.error('Error connecting to server:', error);
       addMessage(`${t('p2pConnectionError')}: ${error}`);
     }
-  }, [initPeer, t]);
+  }
 
-  const acceptClientSignal = useCallback(async (clientSignal: string) => {
+  const acceptClientSignal = async (clientSignal: string) => {
     const SimplePeer = await initPeer();
     if (!SimplePeer || !isServer) return;
 
@@ -201,9 +216,9 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       console.error('Error accepting client:', error);
       addMessage(`${t('p2pConnectionError')}: ${error}`);
     }
-  }, [initPeer, isServer, t]);
+  }
 
-  const acceptServerAnswer = useCallback(async (answerSignal: string, serverId: string) => {
+  const acceptServerAnswer = async (answerSignal: string, serverId: string) => {
     const SimplePeer = await initPeer();
     if (!SimplePeer || isServer) return;
 
@@ -214,7 +229,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
       const peerConn = peers.get(serverId);
       if (!peerConn) {
-        addMessage('❌ No peer found for server');
+        addMessage(t('p2pNoPeerFound'));
         return;
       }
 
@@ -226,43 +241,45 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       console.error('Error accepting server answer:', error);
       addMessage(`${t('p2pAnswerError')}: ${error}`);
     }
-  }, [initPeer, isServer, peers, t]);
+  }
 
-  const sendFullDataToPeer = useCallback((peer: any, targetPeerId: string) => {
+  const sendFullDataToPeer = (peer: any, targetPeerId: string) => {
     const dataToSend = {
       type: 'full-sync',
-      fighterPairs,
-      participants,
-      pools,
-      duels,
-      playoff,
+      fighterPairs: fighterPairsRef.current,
+      participants: participantsRef.current,
+      pools: poolsRef.current,
+      isPlayoff: isPlayoffRef.current,
+      duels: duelsRef.current,
+      playoff: playoffRef.current,
       sourceId: isServer ? 'server' : myPeerId
     };
 
     peer.send(JSON.stringify(dataToSend));
     addMessage(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`);
-  }, [fighterPairs, participants, pools, duels, playoff, isServer, myPeerId, t]);
+  };
 
-  const sendPoolDataToPeer = useCallback((peer: any, targetPeerId: string, poolIndex: number) => {
+  const sendPoolDataToPeer = (peer: any, targetPeerId: string, poolIndex: number) => {
     const dataToSend = {
       type: 'pool',
       payload: {
         poolIndex,
-        duels,
-        fighterPairs,
-        pools,
-        participants
+        isPoolPlayoff: isPlayoffRef.current[poolIndex],  // ← Ref!
+        duels: duelsRef.current,
+        fighterPairs: fighterPairsRef.current,
+        pools: poolsRef.current,
+        participants: participantsRef.current
       },
       sourceId: isServer ? 'server' : myPeerId
     };
 
     peer.send(JSON.stringify(dataToSend));
     addMessage(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`);
-  }, [fighterPairs, participants, pools, duels, isServer, myPeerId, t]);
+  };
 
-  const broadcastFullData = useCallback(() => {
+  const broadcastFullData = () => {
     if (peerList.length === 0) {
-      addMessage('⚠️ No peers connected');
+      addMessage(t('p2pNoPeersConnected'));
       return;
     }
 
@@ -271,11 +288,11 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         sendFullDataToPeer(conn.peer, peerId);
       }
     });
-  }, [peers, peerList, sendFullDataToPeer]);
+  }
 
-  const broadcastPoolData = useCallback((poolIndex: number) => {
+  const broadcastPoolData = (poolIndex: number) => {
     if (peerList.length === 0) {
-      addMessage('⚠️ No peers connected');
+      addMessage(t('p2pNoPeersConnected'));
       return;
     }
 
@@ -284,45 +301,60 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         sendPoolDataToPeer(conn.peer, peerId, poolIndex);
       }
     });
-  }, [peers, peerList, sendPoolDataToPeer]);
+  }
 
-  const sendClientDataToServer = useCallback(() => {
+  const sendClientDataToServer = () => {
     const serverConn = Array.from(peers.values()).find(conn => conn.peerId === myPeerId);
 
     if (serverConn?.connected) {
       sendFullDataToPeer(serverConn.peer, myPeerId);
-      addMessage('📤 Your data sent to server');
+      addMessage(t('p2pClientDataSentToServer'));
     } else {
-      addMessage('❌ No server connection found');
+      addMessage(t('p2pNoServerConnection'));
     }
-  }, [peers, myPeerId, sendFullDataToPeer]);
+  }
 
-  const sendClientPoolToServer = useCallback((poolIndex: number) => {
+  const sendClientPoolToServer = (poolIndex: number) => {
     const serverConn = Array.from(peers.values()).find(conn => conn.peerId === myPeerId);
 
     if (serverConn?.connected) {
       sendPoolDataToPeer(serverConn.peer, myPeerId, poolIndex);
-      addMessage(`📤 Pool ${poolIndex + 1} data sent to server`);
+      addMessage(`${t('p2pPoolDataSentToServer')} ${poolIndex + 1}`);
     } else {
-      addMessage('❌ No server connection found');
+      addMessage(t('p2pNoServerConnection'));
     }
-  }, [peers, myPeerId, sendPoolDataToPeer]);
+  }
 
-  const requestDataFromServer = useCallback(() => {
-    const serverConn = Array.from(peers.values()).find(conn => conn.peerId === myPeerId);
+  const requestDataFromServer = () => {
+    const serverConn = Array.from(peers.values()).find(
+      conn => conn.peerId === myPeerId && conn.isServer === false
+    );
 
-    if (serverConn?.connected) {
-      const requestData = {
-        type: 'request-sync',
-        clientId: myPeerId,
-        requester: 'client'
-      };
+    if (!serverConn) {
+      addMessage(t('p2pServerConnNotFound'));
+      return;
+    }
+
+    if (!serverConn.connected) {
+      addMessage(t('p2pWaitingConnection'));
+      return;
+    }
+
+    const requestData = {
+      type: 'request-sync',
+      clientId: myPeerId,
+      requester: 'client',
+      timestamp: Date.now()
+    };
+
+    try {
       serverConn.peer.send(JSON.stringify(requestData));
-      addMessage('📤 Requested data from server');
-    } else {
-      addMessage('❌ No server connection found');
+      addMessage(t('p2pRequestSyncSent'));
+    } catch (err) {
+      console.error('Failed to send request-sync:', err);
+      addMessage(`${t('p2pSendError')}: ${err}`);
     }
-  }, [peers, myPeerId]);
+  }
 
   const setupPeer = (peer: any, peerId: string) => {
     peer.on('connect', () => {
@@ -388,6 +420,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         if (data.pools) setPools(data.pools);
         if (data.duels) setDuels(data.duels);
         if (data.playoff) setPlayoff(data.playoff);
+        if (data.isPlayoff) setIsPlayoff(data.isPlayoff)
         addMessage(t('p2pDataSynced'));
         break;
 
@@ -402,6 +435,11 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
           setDuels(state=>{
             const buf = JSON.parse(JSON.stringify(state))
             buf[payload.poolIndex] = payload.duels[payload.poolIndex]
+            setIsPlayoff(isEnds=>{
+              const bufEnds = [...isEnds]
+              bufEnds[payload.poolIndex] = payload.isPoolPlayoff
+              return bufEnds
+            })
             return buf
           })
           setParticipants(state=>{
@@ -414,27 +452,51 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
             buf[payload.poolIndex] = payload.pools[payload.poolIndex]
             return buf
           })
-          addMessage(`✅ Pool ${payload.poolIndex + 1} synchronized`);
+          addMessage(`${t('p2pPoolSynced')} ${payload.poolIndex + 1}`);
         }
         break;
 
       case 'request-sync':
-        if (isServer) {
-          addMessage(`📤 Server responding to sync request from ${fromPeerId.substring(0, 8)}...`);
+        if (!isServer) {
+          addMessage(t('p2pRequestSyncIgnoredClient'));
+          return;
+        }
 
-          const targetPeer = peers.get(fromPeerId);
-          if (targetPeer?.connected) {
-            sendFullDataToPeer(targetPeer.peer, fromPeerId);
-          } else {
-            addMessage(`❌ Could not find connection for client ${fromPeerId.substring(0, 8)}...`);
+        addMessage(`${t('p2pServerReceivedRequest')} ${fromPeerId.substring(0, 8)}...`);
+
+        let targetPeer = peers.get(fromPeerId);
+
+        if (!targetPeer && data.clientId) {
+          for (const [key, conn] of peers.entries()) {
+            if (conn.clientId === data.clientId) {
+              targetPeer = conn;
+              addMessage(`${t('p2pFoundPeerFallback')}: ${key}`);
+              break;
+            }
           }
-        } else {
-          addMessage('⚠️ Received request-sync as client, ignoring');
+        }
+
+        if (!targetPeer) {
+          addMessage(`${t('p2pPeerNotFound')} fromPeerId=${fromPeerId}, clientId=${data.clientId}`);
+          return;
+        }
+
+        if (!targetPeer.connected) {
+          addMessage(`${t('p2pPeerNotConnected')} ${fromPeerId}`);
+          return;
+        }
+
+        try {
+          addMessage(`${t('p2pSendingFullSync')} ${fromPeerId.substring(0, 8)}...`);
+          sendFullDataToPeer(targetPeer.peer, fromPeerId);
+        } catch (err) {
+          console.error('Failed to send sync response:', err);
+          addMessage(`${t('p2pResponseError')}: ${err}`);
         }
         break;
 
       default:
-        alert(`${t('p2pUnknownType')}: ${data.type}`);
+        addMessage(`${t('p2pUnknownType')}: ${data.type}`);
     }
   };
 
@@ -481,7 +543,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     navigator.clipboard.writeText(text);
     setCopied(type);
     setTimeout(() => setCopied(''), 2000);
-    addMessage(`${t('p2pSignalCopied')}`);
+    addMessage(t('p2pSignalCopied'));
   };
 
   const disconnectAll = () => {
@@ -515,13 +577,13 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     };
   }, []);
 
-  const syncAllData = useCallback(() => {
+  const syncAllData = () => {
     if (isServer) {
       broadcastFullData();
     } else {
       requestDataFromServer();
     }
-  }, [isServer, broadcastFullData, requestDataFromServer]);
+  }
 
   return (
     <div className={styles.directP2P}>
@@ -562,7 +624,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
       {isServer && myPeerId && (
         <div className={styles.serverInfo}>
-          <h4>🎮 Server ID:</h4>
+          <h4>🎮 {t('p2pServerId')}:</h4>
           <div className={styles.serverId}>
             <code>SERVER:{myPeerId}</code>
             <Button
@@ -654,7 +716,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
           {Array.from(pendingSignals.entries()).map(([clientId, data]) => (
             <div key={clientId} className={styles.pendingSignal}>
               <div className={styles.pendingSignalHeader}>
-                <span>Client: {clientId.substring(0, 8)}...</span>
+                <span>{t('p2pClient')}: {clientId.substring(0, 8)}...</span>
                 <Button
                   title={copied === `answer-${clientId}` ? '✓' : t('p2pCopyAnswer')}
                   onClick={() => copyToClipboard(data.signal, `answer-${clientId}`)}
@@ -696,7 +758,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
       {peerList.length > 0 && (
         <div className={styles.peersList}>
-          <h4><Users size={16} /> Connected Peers ({peerList.length})</h4>
+          <h4><Users size={16} /> {t('p2pConnectedPeers')} ({peerList.length})</h4>
           <div className={styles.peerItems}>
             {peerList.map(peerId => {
               const conn = peers.get(peerId);
@@ -714,7 +776,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       {connectionStatus === 'connected' && (
         <div className={styles.connected}>
           <div className={styles.statusBadge}>
-            {isServer ? '👑 Server' : '💻 Client'} • Connected
+            {isServer ? t('p2pServer') : t('p2pClient')} • {t('p2pConnectedStatus')}
           </div>
 
           <div className={styles.connectedControls}>

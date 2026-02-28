@@ -20,7 +20,7 @@ import {
   warnings2Atom,
 } from "@/store";
 import { generatePairs } from '@/utils/generatePairs';
-import { truncate } from '@/utils/helpers';
+import { isPoolEndByDuels, truncate } from '@/utils/helpers';
 import { useAtom } from 'jotai';
 import { Save } from 'lucide-react';
 import { useState } from 'react';
@@ -120,8 +120,9 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
       truncate(f2?.name || "")
     ]);
 
+  const isPoolInProgress = !isPoolEndByDuels(duels, currentPoolIndex)
   const sections = [
-    ...(fighterPairs[currentPoolIndex].filter(p => p.length).length
+    ...(isPoolInProgress && fighterPairs[currentPoolIndex].filter(p => p.length).length
       ? [
           {
             key: 'current',
@@ -156,7 +157,7 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
           <h2 className={styles.duelTitle}>{item.title}</h2>
           <Table data={item.data} headers={headers} />
 
-          {index === 0 && fighterPairs[currentPoolIndex].filter(p => p.length).length && isEnd.includes(false) ? (
+          {index === 0 && fighterPairs[currentPoolIndex].filter(p => p.length).length && isPoolInProgress && isEnd.includes(false) ? (
             <Button
               title={t('stageEnd')}
               onClick={genPairs}

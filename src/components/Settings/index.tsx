@@ -9,7 +9,7 @@ import Button from '@/components/Button';
 import Section from '@/components/Section';
 import InputText from '@/components/InputText';
 import { GenderSwitch } from '@/components/GenderSwitch';
-import { generateId, getName } from '@/utils/helpers';
+import { generateId, getName, isPoolEndByDuels } from '@/utils/helpers';
 import { useAtom } from 'jotai';
 import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, HitZonesType, hotKeysAtom, hotKeysDefault, HotKeysType, isPlayoffAtom, isPoolRatingAtom, isRobinAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
 import { Gender, ParticipantType } from '@typings';
@@ -31,16 +31,18 @@ type TrashPairProps = {
   setСurrentPoolIndex: React.Dispatch<React.SetStateAction<number>>;
   setParticipants: Dispatch<SetStateAction<ParticipantType[][]>>;
   setDuels: Dispatch<SetStateAction<ParticipantType[][][][]>>;
+  setIsPlayoff: Dispatch<SetStateAction<boolean[]>>;
   currentPoolIndex: number;
   pool: number;
 }
 
-function PoolControllers({ setFighterPairs, setPools, setDuels, setСurrentPoolIndex, setParticipants, pool, currentPoolIndex }:TrashPairProps) {
+function PoolControllers({ setFighterPairs, setPools, setDuels, setСurrentPoolIndex, setParticipants, setIsPlayoff, pool, currentPoolIndex }:TrashPairProps) {
   const deleteHandler = ()=>{
     setFighterPairs(state=>{ const buf = [...state].filter((_, index)=>index !== pool); return buf; });
     setPools(state=>{ const buf = [...state].filter((_, index)=>index !== pool); return buf; });
     setСurrentPoolIndex(state=>pool <= currentPoolIndex ? state-1 : state );
     setParticipants(state=>{ const buf = [...state].filter((_, index)=>index !== pool); return buf;})
+    setIsPlayoff(state=>state.filter((_, idx)=>idx !== pool))
   }
 
   const importFile = async ()=>{
@@ -121,9 +123,18 @@ function PoolControllers({ setFighterPairs, setPools, setDuels, setСurrentPoolI
       })
       setPools(state=>stateHandlerWrap(true)(state))
       setDuels(state=>{
-        const buf = JSON.parse(JSON.stringify(state))
+        const buf: ParticipantType[][][][] = JSON.parse(JSON.stringify(state))
         buf[pool] = []
         buf[pool] = stateHandlerWrap(false)(buf[pool])
+          setIsPlayoff(isEnds=>{
+            const bufEnds = [...isEnds]
+            if (isPoolEndByDuels(buf, pool)) {
+              bufEnds[pool] = true
+            } else {
+              bufEnds[pool] = false
+            }
+            return bufEnds
+          })
         return buf
       })
       setParticipants(state=>{
@@ -133,6 +144,7 @@ function PoolControllers({ setFighterPairs, setPools, setDuels, setСurrentPoolI
         buf[pool] = stateHandlerWrap(true)(virtualArr)[pool].flat().filter(item=>item.name !== "—")
         return buf
       })
+
     }
   }
 
@@ -167,7 +179,6 @@ function App() {
   const [newName, setNewName] = useState('');
   const [gender, setGender] = useState<Gender>(Gender.MALE);
   const [isSounds, setIsSounds] = useState(true)
-  const [showP2P, setShowP2P] = useState(false);
   const hotKeysActions = [t("addScoreRed"), t("removeScoreRed"), t("addScoreBlue"), t("removeScoreBlue"), t("history"), t("start"), t("viewer")]
   /* ---------- загрузка ---------- */
   useEffect(() => {
@@ -336,7 +347,7 @@ function App() {
       <div className={styles.pool} style={{ paddingLeft: "30px" }}>
         {pools.filter((_, idx)=>idx % 2 === 0).map((pairs, i)=>(
           <Section title={t("pool") + " " + (i * 2 + 1).toString()} key={i}>
-           <PoolControllers pool={i * 2} currentPoolIndex={currentPoolIndex} setDuels={setDuels} setPools={setPools} setFighterPairs={setFighterPairs} setСurrentPoolIndex={setСurrentPoolIndex} setParticipants={setParticipants} />
+           <PoolControllers pool={i * 2} setIsPlayoff={setIsPlayoff} currentPoolIndex={currentPoolIndex} setDuels={setDuels} setPools={setPools} setFighterPairs={setFighterPairs} setСurrentPoolIndex={setСurrentPoolIndex} setParticipants={setParticipants} />
             {
               pairs.map((pair, idx) => (
                 <span key={idx}>
@@ -404,7 +415,7 @@ function App() {
             {t("pool")}
             <InputNumber
             value={currentPoolIndex + 1}
-            onChange={(pool)=>{ if (pool-1 === fighterPairs.length){ setFighterPairs(state=>[...state, ...pairsDefault]); setPools(state=>[...state, ...pairsDefault]); setParticipants(state=>[...state, []]); setCurrentPairIndex(state=>[...state, 0]); setDuels(state=>[...state, []]) }; setСurrentPoolIndex(pool - 1)}}
+            onChange={(pool)=>{ if (pool-1 === fighterPairs.length){ setFighterPairs(state=>[...state, ...pairsDefault]); setPools(state=>[...state, ...pairsDefault]); setParticipants(state=>[...state, []]); setCurrentPairIndex(state=>[...state, 0]); setDuels(state=>[...state, []]); setIsPlayoff(state=>[...state, false])}; setСurrentPoolIndex(pool - 1)}}
             min={1}
             />
           </div>
@@ -486,11 +497,6 @@ function App() {
           <Switch title={t("isPoolRating")} value={isPoolRating} setValue={setIsPoolRating} />
         </Section>
 
-        <Section title='P2P'>
-          <Button title={showP2P ? 'Скрыть P2P' : 'P2P Соединение'} onClick={() => setShowP2P(!showP2P)} />
-          {showP2P && <DirectP2P />}
-        </Section>
-
         {/* --- 5. Сохранить --- */}
         <Section>
           <Button onClick={saveAll}>
@@ -507,7 +513,7 @@ function App() {
       <div className={styles.pool} style={{ paddingRight: "30px" }}>
         {pools.filter((_, idx)=>idx % 2 !== 0).map((pairs, i)=>(
           <Section title={t("pool") + " " + ((i + 1) * 2).toString()} key={i}>
-            <PoolControllers pool={((i + 1) * 2)-1} currentPoolIndex={currentPoolIndex} setDuels={setDuels} setPools={setPools} setFighterPairs={setFighterPairs} setСurrentPoolIndex={setСurrentPoolIndex} setParticipants={setParticipants} />
+            <PoolControllers pool={((i + 1) * 2)-1} setIsPlayoff={setIsPlayoff} currentPoolIndex={currentPoolIndex} setDuels={setDuels} setPools={setPools} setFighterPairs={setFighterPairs} setСurrentPoolIndex={setСurrentPoolIndex} setParticipants={setParticipants} />
             {
               pairs.map((pair, idx) => (
                 <span key={idx}>

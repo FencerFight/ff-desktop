@@ -96,5 +96,21 @@
   "p2pSignalCopied": "📋 Signal copied to clipboard",
   "p2pDisconnected": "Disconnected",
   "p2pSendMyDataToServer": "📤 Send My Data to Server",
-  "withoutPair": "Left without an opponent"
+  "p2pServerId": "Server ID",
+  "p2pNoPeerFound": "❌ No peer found",
+  "p2pClientDataSentToServer": "📤 Your data sent to server",
+  "p2pPoolDataSentToServer": "📤 Pool",
+  "p2pNoServerConnection": "❌ No server connection found",
+  "p2pServerConnNotFound": "❌ Server connection not found in peers map",
+  "p2pWaitingConnection": "⏳ Waiting for connection to establish...",
+  "p2pRequestSyncSent": "📤 Request-sync sent to server",
+  "p2pConnectedPeers": "Connected Peers",
+  "p2pServer": "Server",
+  "p2pClient": "Client",
+  "p2pConnectedStatus": "Connected",
+  "p2pServerReceivedRequest": "📤 Server received sync request from",
+  "p2pSendingFullSync": "📤 Sending full sync to",
+  "p2pPoolSynced": "✅ Pool",
+  "withoutPair": "Left without an opponent",
+  "nextRound": "Next round"
 }

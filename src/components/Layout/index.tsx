@@ -7,6 +7,9 @@ import Grid from "../Grid";
 import { useState, useEffect } from "react";
 import FightViewerWindow from "../FightViewerWindow";
 import { storage } from "@/utils/storage";
+import ModalWindow from "../ModalWindow";
+import DirectP2P from "../DirectP2P";
+import Button from "../Button";
 
 enum Pages {
     SETTINGS = 'settings',
@@ -18,6 +21,7 @@ enum Pages {
 export default function Layout() {
     const [page, setPage] = useState<Pages>(Pages.SETTINGS);
     const [isStorageReady, setIsStorageReady] = useState(false);
+    const [showP2P, setShowP2P] = useState(false);
 
     // Проверяем URL параметры при загрузке
     useEffect(() => {
@@ -78,11 +82,15 @@ export default function Layout() {
                             <Network size={28} />
                         </button>
                     </div>
+                    <Button stroke onClick={()=>setShowP2P(!showP2P)} style={{ minWidth: "8px", position: "absolute", top: "12px", right: "10px" }}>P2P</Button>
                 </header>
             )}
 
             {/* Рендерим только активную страницу */}
             {renderPage()}
+            <ModalWindow isOpen={showP2P} onClose={()=>setShowP2P(!showP2P)} style={{ maxWidth: "38rem" }} hidden>
+                <DirectP2P />
+            </ModalWindow>
         </main>
     )
 }

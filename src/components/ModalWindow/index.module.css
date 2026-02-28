@@ -16,6 +16,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem; /* 16px */
+  cursor: pointer;
 }
 
 /* Само модальное окно */
@@ -28,6 +29,10 @@
   background-color: var(--surface);
   color: var(--fg);
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  max-height: 800px;
+  overflow: auto;
+  height: fit-content;
+  cursor: initial;
 }
 
 /* Кнопка закрытия */
@@ -53,4 +58,8 @@
 .closeBtn:hover,
 .closeBtn:focus {
   background-color: var(--accent-transparent);
+}
+
+.hidden {
+  display: none;
 }

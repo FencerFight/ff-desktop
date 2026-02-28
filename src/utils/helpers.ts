@@ -1,4 +1,5 @@
 import { STORAGE_PREFIX } from "@/constants";
+import { ParticipantType } from "@/typings";
 
 export const truncate = (str: string, max = 9) => str?.length > max ? `${str.slice(0, max-2)}…` : (str ? str: '');
 
@@ -63,3 +64,14 @@ export const decodeFromBase64 = (str: string): string => {
     return str;
   }
 };
+
+export function isPoolEndByDuels(duels: ParticipantType[][][][], poolIndex: number) {
+  try {
+    const fightersCount = duels[poolIndex][0].reduce((sum, pair)=>pair.flat().filter(man=>man.name !== "—").length + sum, 0)
+    const battlesCountMustBe = (fightersCount * (fightersCount-1))/2
+    const battlesCount = duels[poolIndex].reduce((sum, pairs)=>pairs.filter(pair=>pair[0].name !== "—" && pair[1].name !== "—").length + sum, 0)
+    return battlesCount === battlesCountMustBe
+  } catch(e) {
+    return false
+  }
+}

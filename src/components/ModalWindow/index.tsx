@@ -6,9 +6,11 @@ type ModalWindowProps = {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  style?: React.CSSProperties;
+  hidden?: boolean;
 };
 
-const ModalWindow: React.FC<ModalWindowProps> = ({ isOpen, onClose, children }) => {
+const ModalWindow: React.FC<ModalWindowProps> = ({ isOpen, onClose, children, style, hidden }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -23,20 +25,23 @@ const ModalWindow: React.FC<ModalWindowProps> = ({ isOpen, onClose, children }) 
     };
   }, [isOpen, onClose]);
 
-  return isOpen ? (
+  return (isOpen || hidden) ? (
     <>
       <div
-        className={styles.backdrop}
+        className={[styles.backdrop, isOpen ? "" : styles.hidden].join(" ")}
       />
 
       {/* Modal */}
       <div
-        className={styles.modalWrapper}
+        className={[styles.modalWrapper, isOpen ? "" : styles.hidden].join(" ")}
         role="dialog"
         aria-modal="true"
+        onClick={onClose}
       >
         <div
           className={styles.modal}
+          style={style}
+          onClick={(e)=>e.stopPropagation()}
         >
           {/* Close button */}
           <button
@@ -48,7 +53,7 @@ const ModalWindow: React.FC<ModalWindowProps> = ({ isOpen, onClose, children }) 
           </button>
 
           {/* Content */}
-          <div>{children}</div>
+          <div style={{ display: "flex", flexDirection: "column" }}>{children}</div>
         </div>
       </div>
     </>
