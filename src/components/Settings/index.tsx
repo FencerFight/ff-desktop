@@ -454,7 +454,7 @@ function App() {
               //@ts-ignore
               value={hotKeys[action]}
               onKeyDown={(e)=>setHotKeys(prev=>({...prev, [action]: e.code }))}
-              style={{ width: "130px" }}
+              style={{ width: "130px", textAlign: "center" }}
               maxLength={1}
               />
             </div>
