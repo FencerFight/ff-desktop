@@ -4,7 +4,7 @@ import { Gender, ParticipantType } from "@/typings";
 export const generatePairs = (
   participants: ParticipantType[],
   sameGenderOnly: boolean,
-  isSwiss: boolean,
+  isRobin: boolean,
   poolIndex: number,
   setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>,
   setCurrentPairIndex: React.Dispatch<React.SetStateAction<number[]>>
@@ -13,7 +13,7 @@ export const generatePairs = (
   let pairs: ParticipantType[][][] = [];
 
   /* ---------- ОЛИМПИЙСКАЯ ---------- */
-  if (!isSwiss) {
+  if (!isRobin) {
     let shuffled = [...participants].sort(() => Math.random() - 0.5);
 
     const filter = (group: ParticipantType[]) => {
@@ -42,8 +42,8 @@ export const generatePairs = (
     }
   }
 
-  /* ---------- ШВЕЙЦАРСКАЯ ---------- */
-  else if (isSwiss) {
+  /* ---------- КРУГОВАЯ ---------- */
+  else if (isRobin) {
     // 1. Сортируем по очкам (wins + 0.5*draws)
     const sorted = [...participants].sort((a, b) => {
       const scoreA = a.buchholz + a.draws * 0.5;

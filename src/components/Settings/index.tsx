@@ -11,7 +11,7 @@ import InputText from '@/components/InputText';
 import { GenderSwitch } from '@/components/GenderSwitch';
 import { generateId, getName, LocalStorage } from '@/utils/helpers';
 import { useAtom } from 'jotai';
-import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, hotKeysAtom, hotKeysDefault, isPlayoffAtom, isPoolRatingAtom, isSwissAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
+import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, hotKeysAtom, hotKeysDefault, isPlayoffAtom, isPoolRatingAtom, isRobinAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
 import { Gender, ParticipantType } from '@typings';
 import { langLabels } from '@constants';
 import toast from 'react-hot-toast';
@@ -156,7 +156,7 @@ function App() {
   const [currentPoolIndex, setСurrentPoolIndex] = useAtom(currentPoolIndexAtom);
   const [language, setLanguage] = useAtom(languageAtom);
   const [sameGenderOnly, setSameGenderOnly] = useAtom(sameGenderOnlyAtom);
-  const [isSwiss, setIsSwiss] = useAtom(isSwissAtom);
+  const [isRobin, setisRobin] = useAtom(isRobinAtom);
   const [, setDuels] = useAtom(duelsAtom);
   const [hotKeys, setHotKeys] = useAtom(hotKeysAtom)
   const [, setIsPlayoff] = useAtom(isPlayoffAtom)
@@ -167,7 +167,7 @@ function App() {
   const [gender, setGender] = useState<Gender>(Gender.MALE);
   const [isSounds, setIsSounds] = useState(true)
   const [showP2P, setShowP2P] = useState(false);
-  const hotKeysActions = [t("addScoreRed"), t("removeScoreRed"), t("addScoreBlue"), t("removeScoreBlue"), t("history"), t("start")]
+  const hotKeysActions = [t("addScoreRed"), t("removeScoreRed"), t("addScoreBlue"), t("removeScoreBlue"), t("history"), t("start"), t("viewer")]
   /* ---------- загрузка ---------- */
   useEffect(() => {
     (async () => {
@@ -236,7 +236,7 @@ function App() {
       buf[currentPoolIndex] = false
       return buf
     })
-    const pairs = generatePairs(newParticipants[currentPoolIndex], sameGenderOnly, isSwiss, currentPoolIndex, setFighterPairs, setCurrentPairIndex)
+    const pairs = generatePairs(newParticipants[currentPoolIndex], sameGenderOnly, isRobin, currentPoolIndex, setFighterPairs, setCurrentPairIndex)
     setPools(state=>{
       const buf = [...state]
       buf[currentPoolIndex] = pairs[currentPoolIndex]
@@ -396,7 +396,7 @@ function App() {
             />
           </div>
           <Switch title={t('sameGenderPairs')} value={sameGenderOnly} setValue={setSameGenderOnly} />
-          <Switch title={t('swissSystem')} value={isSwiss} setValue={setIsSwiss} />
+          <Switch title={t('robinSystem')} value={isRobin} setValue={setisRobin} />
           </>
 
           <Button style={{ marginTop: 10 }} onClick={genPairs} title={t('randomizePairs')} stroke />

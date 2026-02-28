@@ -8,7 +8,7 @@ import {
   fighterPairsAtom,
   isPlayoffAtom,
   isPoolRatingAtom,
-  isSwissAtom,
+  isRobinAtom,
   playoffAtom,
   poolCountDeleteAtom,
   protests1Atom,
@@ -39,7 +39,7 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
   const [isPoolRating] = useAtom(isPoolRatingAtom)
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
   const [sameGenderOnly] = useAtom(sameGenderOnlyAtom);
-  const [isSwiss] = useAtom(isSwissAtom);
+  const [isRobin] = useAtom(isRobinAtom);
   const [winners, setWinners] = useState<string[]>([])
   const [, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
   const [currentPoolIndex] = useAtom(currentPoolIndexAtom);
@@ -73,7 +73,7 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
   }
 
   const genPairs = async () => {
-    const newFighters = !isSwiss ? fighterPairs[currentPoolIndex].map(pair => {
+    const newFighters = !isRobin ? fighterPairs[currentPoolIndex].map(pair => {
       if (pair[0]?.name === "—") {
         return pair[1];
       } else if (pair[1]?.name === "—") {
@@ -90,8 +90,8 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
     }).flat();
     setDuels(prev =>{ const buf = JSON.parse(JSON.stringify(prev)); buf[currentPoolIndex].push(fighterPairs[currentPoolIndex]); return buf });
     if (newFighters.length > 1) {
-      const newPairs = generatePairs(newFighters, sameGenderOnly, isSwiss, currentPoolIndex, setFighterPairs, setCurrentPairIndex);
-      if (isSwiss) {
+      const newPairs = generatePairs(newFighters, sameGenderOnly, isRobin, currentPoolIndex, setFighterPairs, setCurrentPairIndex);
+      if (isRobin) {
         const pairs = newPairs[currentPoolIndex].flat()
         if (pairs.filter(pair=>pair.name === "—").length === pairs.filter(pair=>pair.name !== "—").length) {
           endTournament()
@@ -139,12 +139,12 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
 
   return !playoff.length ? (
     <div className={styles.container}>
-        {!isEnd.includes(false) && isSwiss ?
+        {!isEnd.includes(false) && isRobin ?
         <Button onClick={()=>setPlayoff(generatePlayoffPairs(duels, poolCountDelete, isPoolRating))} title={t('playoff')} style={{ width: "100%", marginBottom: "10px" }} />
         :
         <></>
         }
-        {!!winners.length && !isSwiss &&
+        {!!winners.length && !isRobin &&
         <div className={styles.winners}>
             <span className={styles.winner}><span>2</span><span>{winners[1]}</span></span>
             <span className={styles.first}><span>1</span><span>{winners[0]}</span></span>

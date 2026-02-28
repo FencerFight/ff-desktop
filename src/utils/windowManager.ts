@@ -16,7 +16,7 @@ export async function openFightViewerWindow() {
     // Добавляем параметр view=true в URL
     const viewerWindow = new WebviewWindow(windowLabel, {
       url: '/?view=true', // Передаем параметр
-      title: 'Просмотр боя',
+      title: 'Timer',
       width: 1280,
       height: 720,
       minWidth: 800,

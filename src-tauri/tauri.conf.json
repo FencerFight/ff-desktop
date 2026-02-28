@@ -34,6 +34,10 @@
       "icons/128x128.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "longDescription": "Fencer Fight is a professional application for organizing and holding sports tournaments. It allows you to create pools of participants, count points with a timer, create playoff grids, export results to Excel and synchronize data between devices via P2P.",
+    "shortDescription": "Tournament management with P2P synchronization",
+    "copyright": "© 2026 Fencer Fight",
+    "publisher": "Artem Podloboshnikov"
   }
 }

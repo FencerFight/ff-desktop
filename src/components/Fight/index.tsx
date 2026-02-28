@@ -35,6 +35,7 @@ import { useTranslation } from 'react-i18next';
 import ModalWindow from '@/components/ModalWindow';
 import SelectPair from '@/components/SelectPair';
 import { emit } from '@tauri-apps/api/event';
+import { openFightViewerWindow } from '@/utils/windowManager';
 
 
 // Звуковые файлы (замените на ваши пути)
@@ -99,30 +100,30 @@ export default function FightScreen() {
 
   const { fighter1, fighter2, fighterId1, fighterId2 } = getFighterData();
 
-  useEffect(() => {
-    const sendDataToViewer = async () => {
-      try {
-        await emit('fight-data-updated', {
-          score1,
-          score2,
-          protests1,
-          protests2,
-          warnings1,
-          warnings2,
-          doubleHits,
-          timeLeft,
-          isRunning,
-          fighter1,
-          fighter2,
-          isPlayOff,
-          isFinished,
-          winner
-        });
-      } catch (error) {
-        console.error('Ошибка отправки данных:', error);
-      }
-    };
+  const sendDataToViewer = async () => {
+    try {
+      await emit('fight-data-updated', {
+        score1,
+        score2,
+        protests1,
+        protests2,
+        warnings1,
+        warnings2,
+        doubleHits,
+        timeLeft,
+        isRunning,
+        fighter1,
+        fighter2,
+        isPlayOff,
+        isFinished,
+        winner
+      });
+    } catch (error) {
+      console.error('Ошибка отправки данных:', error);
+    }
+  };
 
+  useEffect(() => {
     sendDataToViewer();
   }, [
     score1, score2,
@@ -297,6 +298,12 @@ export default function FightScreen() {
         case hotKeys.start:
           event.preventDefault();
           setIsRunning(prev=>!prev)
+          break;
+        case hotKeys.viewer:
+          event.preventDefault();
+          openFightViewerWindow().then(()=>{
+            setTimeout(()=>sendDataToViewer(), 1000)
+          })
           break;
       }
     };
