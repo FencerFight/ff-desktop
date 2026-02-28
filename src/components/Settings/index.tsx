@@ -466,7 +466,9 @@ function App() {
 
         <Section title={t('pool')}>
           <div className={styles.zoneRow}>
-            {t("poolCountDelete")}
+            <span style={{ width: "200px", wordBreak: "break-word" }}>
+              {t("poolCountDelete")}
+            </span>
             <InputNumber
             value={poolCountDelete}
             onChange={setPoolCountDelete}
