@@ -1,5 +1,5 @@
 // components/DirectP2P.tsx
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { QRCodeCanvas as QRCode} from 'qrcode.react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAtom } from 'jotai';
