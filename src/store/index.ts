@@ -1,5 +1,5 @@
 // store.ts
-import { Gender, ParticipantPlayoffType, ParticipantType } from '@/typings';
+import { ParticipantPlayoffType, ParticipantType } from '@/typings';
 import { generateId } from '@/utils/helpers';
 import { atom } from 'jotai';
 
@@ -15,7 +15,6 @@ export type HitZonesType = typeof hitZonesDefault;
 export const fighterDefault: ParticipantType = {
   id: "null",
   name: "—",
-  gender: Gender.MALE,
   wins: 0,
   scores: 0,
   losses: 0,
@@ -40,15 +39,14 @@ export type HotKeysType = typeof hotKeysDefault
 
 export const pairsDefault: ParticipantType[][][] = [[
   // Массив пар бойцов по умолчанию
-  [{ ...fighterDefault, name: 'Fighter A', id: generateId("Fighter A"), gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter B', id: generateId("Fighter B"), gender: Gender.MALE }],
-  [{ ...fighterDefault, name: 'Fighter C', id: generateId("Fighter C"), gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter D', id: generateId("Fighter D"), gender: Gender.MALE }]
+  [{ ...fighterDefault, name: 'Fighter A', id: generateId("Fighter A") }, { ...fighterDefault, name: 'Fighter B', id: generateId("Fighter B") }],
+  [{ ...fighterDefault, name: 'Fighter C', id: generateId("Fighter C") }, { ...fighterDefault, name: 'Fighter D', id: generateId("Fighter D") }]
 ]]
 
 // Основные атомы таймера
 export const fightTimeAtom = atom(fightTimeDefault); // Время боя в секундах (по умолчанию 3 минуты)
 export const isRunningAtom = atom(false); // Состояние таймера (запущен/остановлен)
 export const languageAtom = atom<"en"|"ru"|"cn">('ru'); // Язык интерфейса ('en', 'ru', 'cn')
-export const sameGenderOnlyAtom = atom(true); // Сортировка по полу
 export const isRobinAtom = atom(true); // Швейцарская система
 
 export const historyAtom = atom<{ score1: number, score2: number }[]>([]);

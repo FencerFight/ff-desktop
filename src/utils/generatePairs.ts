@@ -1,9 +1,8 @@
 import { fighterDefault } from "@/store";
-import { Gender, ParticipantType } from "@/typings";
+import { ParticipantType } from "@/typings";
 
 export const generatePairs = (
   participants: ParticipantType[],
-  sameGenderOnly: boolean,
   isRobin: boolean,
   poolIndex: number,
   setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>,
@@ -26,20 +25,13 @@ export const generatePairs = (
         pairs[poolIndex].push([
           group[group.length - 1],
           {
-            ...fighterDefault,
-            gender: group[group.length - 1].gender
+            ...fighterDefault
           },
         ]);
       }
     };
 
-    if (sameGenderOnly) {
-      const males = shuffled.filter((p) => p.gender === Gender.MALE);
-      const females = shuffled.filter((p) => p.gender === Gender.FEMALE);
-      [males, females].forEach(filter);
-    } else {
-      filter(shuffled);
-    }
+    filter(shuffled);
   }
 
   /* ---------- КРУГОВАЯ ---------- */
@@ -52,13 +44,8 @@ export const generatePairs = (
       return a.id.localeCompare(b.id);
     });
 
-    // 2. Фильтрация по полу
-    const groups = sameGenderOnly
-      ? [
-          sorted.filter((p) => p.gender === Gender.MALE),
-          sorted.filter((p) => p.gender === Gender.FEMALE),
-        ]
-      : [sorted];
+
+    const groups = [sorted];
 
     groups.forEach((group) => {
       const used = new Set<string>();
@@ -104,8 +91,7 @@ export const generatePairs = (
           tempPairs.push([
             p1,
             {
-              ...fighterDefault,
-              gender: p1.gender
+              ...fighterDefault
             },
           ]);
           used.add(p1.id);

@@ -32,7 +32,6 @@
   "score": "Score",
   "draw": "Draw",
   "reset": "Initial settings",
-  "sameGenderPairs": "Same-gender pairs only",
   "robinSystem": "Round Robin",
   "editTime": "Edit time",
   "stage": "stage",
@@ -111,6 +110,13 @@
   "p2pServerReceivedRequest": "📤 Server received sync request from",
   "p2pSendingFullSync": "📤 Sending full sync to",
   "p2pPoolSynced": "✅ Pool",
+  "p2pNoPeersConnected": "⚠️ No peers connected",
+  "p2pSendError": "❌ Send error",
+  "p2pResponseError": "❌ Response error",
+  "p2pPeerNotConnected": "⏳ Peer not connected",
+  "p2pPeerNotFound": "❌ Peer not found",
+  "p2pFoundPeerFallback": "🔍 Found peer via clientId fallback lookup",
+  "p2pRequestSyncIgnoredClient": "⚠️ Received sync request but currently acting as client, ignored",
   "withoutPair": "Left without an opponent",
   "nextRound": "Next round"
 }

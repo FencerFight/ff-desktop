@@ -13,7 +13,6 @@ import {
   poolCountDeleteAtom,
   protests1Atom,
   protests2Atom,
-  sameGenderOnlyAtom,
   score1Atom,
   score2Atom,
   warnings1Atom,
@@ -38,7 +37,6 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
   const [poolCountDelete] = useAtom(poolCountDeleteAtom)
   const [isPoolRating] = useAtom(isPoolRatingAtom)
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
-  const [sameGenderOnly] = useAtom(sameGenderOnlyAtom);
   const [isRobin] = useAtom(isRobinAtom);
   const [winners, setWinners] = useState<string[]>([])
   const [, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
@@ -90,7 +88,7 @@ export default function TournamentGridScreen({ fightActivate }:{ fightActivate: 
     }).flat();
     setDuels(prev =>{ const buf = JSON.parse(JSON.stringify(prev)); buf[currentPoolIndex].push(fighterPairs[currentPoolIndex]); return buf });
     if (newFighters.length > 1) {
-      const newPairs = generatePairs(newFighters, sameGenderOnly, isRobin, currentPoolIndex, setFighterPairs, setCurrentPairIndex);
+      const newPairs = generatePairs(newFighters, isRobin, currentPoolIndex, setFighterPairs, setCurrentPairIndex);
       if (isRobin) {
         const pairs = newPairs[currentPoolIndex].flat()
         if (pairs.filter(pair=>pair.name === "—").length === pairs.filter(pair=>pair.name !== "—").length) {

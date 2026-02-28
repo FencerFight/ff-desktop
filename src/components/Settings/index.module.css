@@ -90,14 +90,6 @@
   font-family: "IBMPlexSansRegular", sans-serif;
 }
 
-.genderRow {
-  display: flex;
-  flex-direction: row;
-  margin: 8px 0;
-  justify-content: center;
-  align-items: center;
-}
-
 .countTxt {
   color: var(--fg);
   font-size: 16px;

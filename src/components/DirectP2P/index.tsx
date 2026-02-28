@@ -10,6 +10,7 @@ import InputText from '../InputText';
 import { useTranslation } from 'react-i18next';
 import { encodeToBase64, decodeFromBase64, generateId } from '@/utils/helpers';
 import { Users, Wifi } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const STUNservers: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -421,6 +422,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         if (data.duels) setDuels(data.duels);
         if (data.playoff) setPlayoff(data.playoff);
         if (data.isPlayoff) setIsPlayoff(data.isPlayoff)
+        toast.success(t('p2pDataSynced'))
         addMessage(t('p2pDataSynced'));
         break;
 
@@ -452,6 +454,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
             buf[payload.poolIndex] = payload.pools[payload.poolIndex]
             return buf
           })
+          toast.success(`${t('p2pPoolSynced')} ${payload.poolIndex + 1}`)
           addMessage(`${t('p2pPoolSynced')} ${payload.poolIndex + 1}`);
         }
         break;
@@ -487,6 +490,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         }
 
         try {
+          toast(`${t('p2pSendingFullSync')} ${fromPeerId.substring(0, 8)}...`)
           addMessage(`${t('p2pSendingFullSync')} ${fromPeerId.substring(0, 8)}...`);
           sendFullDataToPeer(targetPeer.peer, fromPeerId);
         } catch (err) {

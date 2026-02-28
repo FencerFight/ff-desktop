@@ -7,12 +7,13 @@
 ## ✨ Key Features
 
 ### 👥 Participant and Pool Management
+
 - Create unlimited pools with participants
-- Automatic gender and rating-based distribution
 - Flexible system for adding and removing participants
 - Visual display of all pools and pairs
 
 ### ⚔️ Match Management
+
 - **Interactive timer** with countdown
 - **Score tracking system** with hit zone support (head, body, legs)
 - Recording of warnings, protests, and double hits
@@ -21,6 +22,7 @@
 - Automatic winner and draw detection
 
 ### 🏅 Tournament Brackets
+
 - **Olympic system** (playoff) with third-place match support
 - **Round Robin** for multi-round tournaments
 - Automatic "strong vs weak" pair generation
@@ -28,23 +30,27 @@
 - Progressive bracket narrowing toward the final
 
 ### 📊 Data Management
+
 - **Excel export** — complete tournament results download
 - **Excel import** — quick tournament recovery
 - Match history preservation
 - Detailed statistics for each participant
 
 ### 🌐 Network Features
+
 - **P2P connection** between devices without a server
 - Data exchange via QR codes or manual key input
 - Result synchronization across multiple devices
 - Support for multiple connections to a single server
 
 ### 🖥️ Multi-Window Mode
+
 - Separate spectator window with large score display
 - "View-only" mode without control elements
 - Automatic window synchronization
 
 ### 🌍 Multilingual Support
+
 - Russian, English, and Chinese language support
 - Real-time language switching
 
@@ -71,11 +77,11 @@
 
 ## 📈 Advantages
 
-✅ **Simplicity** — intuitive interface requiring no training  
-✅ **Reliability** — automatic data saving  
-✅ **Flexibility** — support for various tournament systems  
-✅ **Scalability** — from small club tournaments to major competitions  
-✅ **Accessibility** — free application with open architecture  
+✅ **Simplicity** — intuitive interface requiring no training
+✅ **Reliability** — automatic data saving
+✅ **Flexibility** — support for various tournament systems
+✅ **Scalability** — from small club tournaments to major competitions
+✅ **Accessibility** — free application with open architecture
 
 ---
 

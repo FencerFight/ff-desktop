@@ -1,12 +1,6 @@
-export enum Gender {
-  MALE,
-  FEMALE
-}
-
 export type ParticipantType = {
   id: string;               // уникальный идентификатор
   name: string;
-  gender: Gender;
   wins: number;             // победы
   scores: number;           // очки
   losses: number;           // поражения

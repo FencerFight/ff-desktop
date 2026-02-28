@@ -1,4 +1,4 @@
-import { Mars, PictureInPicture2, Plus, RefreshCw, Save, Trash2, Upload, Venus } from 'lucide-react';
+import { PictureInPicture2, Plus, RefreshCw, Save, Trash2, Upload } from 'lucide-react';
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next"
 import styles from "./index.module.css"
@@ -8,11 +8,10 @@ import { appDataDir, join } from '@tauri-apps/api/path';
 import Button from '@/components/Button';
 import Section from '@/components/Section';
 import InputText from '@/components/InputText';
-import { GenderSwitch } from '@/components/GenderSwitch';
 import { generateId, getName, isPoolEndByDuels } from '@/utils/helpers';
 import { useAtom } from 'jotai';
-import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, HitZonesType, hotKeysAtom, hotKeysDefault, HotKeysType, isPlayoffAtom, isPoolRatingAtom, isRobinAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
-import { Gender, ParticipantType } from '@typings';
+import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, HitZonesType, hotKeysAtom, hotKeysDefault, HotKeysType, isPlayoffAtom, isPoolRatingAtom, isRobinAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom } from '@store';
+import { ParticipantType } from '@typings';
 import { langLabels } from '@constants';
 import toast from 'react-hot-toast';
 import Switch from '@/components/Switch';
@@ -167,7 +166,6 @@ function App() {
   const [currentPairIndex, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
   const [currentPoolIndex, setСurrentPoolIndex] = useAtom(currentPoolIndexAtom);
   const [language, setLanguage] = useAtom(languageAtom);
-  const [sameGenderOnly, setSameGenderOnly] = useAtom(sameGenderOnlyAtom);
   const [isRobin, setisRobin] = useAtom(isRobinAtom);
   const [, setDuels] = useAtom(duelsAtom);
   const [hotKeys, setHotKeys] = useAtom(hotKeysAtom)
@@ -176,7 +174,6 @@ function App() {
 
   /* ---------- состояние ---------- */
   const [newName, setNewName] = useState('');
-  const [gender, setGender] = useState<Gender>(Gender.MALE);
   const [isSounds, setIsSounds] = useState(true)
   const hotKeysActions = [t("addScoreRed"), t("removeScoreRed"), t("addScoreBlue"), t("removeScoreBlue"), t("history"), t("start"), t("viewer")]
   /* ---------- загрузка ---------- */
@@ -234,7 +231,7 @@ function App() {
     if (!name) return;
     setParticipants(state=>{
       const buf = [...state];
-      buf[currentPoolIndex] = [...buf[currentPoolIndex], { ...fighterDefault, name, gender, id: generateId(name) }]
+      buf[currentPoolIndex] = [...buf[currentPoolIndex], { ...fighterDefault, name, id: generateId(name) }]
       return buf
     });
     setNewName('');
@@ -264,7 +261,7 @@ function App() {
       buf[currentPoolIndex] = false
       return buf
     })
-    const pairs = generatePairs(newParticipants[currentPoolIndex], sameGenderOnly, isRobin, currentPoolIndex, setFighterPairs, setCurrentPairIndex)
+    const pairs = generatePairs(newParticipants[currentPoolIndex], isRobin, currentPoolIndex, setFighterPairs, setCurrentPairIndex)
     setPools(state=>{
       const buf = [...state]
       buf[currentPoolIndex] = pairs[currentPoolIndex]
@@ -377,8 +374,6 @@ function App() {
             setValue={setNewName}
           />
 
-          <GenderSwitch gender={gender} setGender={setGender} />
-
           <Button className={styles.addBtn} onClick={addParticipant} disabled={participants[currentPoolIndex]?.length > 6}>
             <Plus size={28} color="var(--fg)" />
           </Button>
@@ -386,10 +381,6 @@ function App() {
           {participants[currentPoolIndex]?.map((p, idx) => (
             <div key={idx} className={styles.participantRow}>
               <span className={styles.participantTxt}>{p.name}</span>
-              {p.gender === Gender.MALE ?
-                <Mars size={15} color="var(--fg)" style={{ marginLeft: '-125px' }} /> :
-                <Venus size={15} color="var(--fg)" style={{ marginLeft: '-125px' }} />
-              }
               <button
                 onClick={() => removeParticipant(idx)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer' }}
@@ -399,18 +390,8 @@ function App() {
             </div>
             )
           )}
-          <div className={styles.genderRow} style={{ gap: "20px" }}>
-            <div className={[styles.genderRow, { marginVertical: 0 }].join(" ")}>
-              <Mars size={28} color="var(--fg)" />
-              <span className={styles.countTxt}>{participants[currentPoolIndex]?.filter(p => p.gender === Gender.MALE).length}</span>
-            </div>
-            <div className={[styles.genderRow, { marginVertical: 0, marginLeft: 30 }].join(" ")}>
-              <Venus size={28} color="var(--fg)" />
-              <span className={styles.countTxt} style={{ marginLeft: "0px" }}>{participants[currentPoolIndex]?.filter(p => p.gender === Gender.FEMALE).length}</span>
-            </div>
-          </div>
 
-          <div className={styles.zoneRow}>
+          <div className={styles.zoneRow} style={{ marginTop: "20px" }}>
             {t("pool")}
             <InputNumber
             value={currentPoolIndex + 1}
@@ -418,7 +399,6 @@ function App() {
             min={1}
             />
           </div>
-          <Switch title={t('sameGenderPairs')} value={sameGenderOnly} setValue={setSameGenderOnly} />
           <Switch title={t('robinSystem')} value={isRobin} setValue={setisRobin} />
           </>
 
