@@ -25,7 +25,7 @@ import {
   playoffIndexAtom,
   playoffMatchIndexAtom,
 } from '@/store';
-import { formatTime, LocalStorage, truncateFullName } from '@/utils/helpers';
+import { formatTime, truncateFullName } from '@/utils/helpers';
 import { incWin } from '@/utils/incWin';
 import { History, Medal, Minus, Pause, Play, RefreshCw, UsersRound } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -36,12 +36,12 @@ import ModalWindow from '@/components/ModalWindow';
 import SelectPair from '@/components/SelectPair';
 import { emit } from '@tauri-apps/api/event';
 import { openFightViewerWindow } from '@/utils/windowManager';
+import { storage } from '@/utils/storage';
 
 
-// Звуковые файлы (замените на ваши пути)
-let bellSound = new Howl({ src: ['/sounds/bell.mp3'] });
 
 export default function FightScreen() {
+  const [bellSound, setBellSound] = useState(new Howl({ src: ['/sounds/bell.mp3'] }));
   const { t: translate } = useTranslation()
   const [currentPairIndex, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
   const [currentPoolIndex] = useAtom(currentPoolIndexAtom);
@@ -67,7 +67,7 @@ export default function FightScreen() {
   const [isOpen, setIsOpen] = useState(false)
   const [isHistory, setIsHistory] = useState(false)
   const [timeLeft, setTimeLeft] = useState(fightTime);
-  const [bellUri, setBellUri] = useState<string>("");
+  const [bellUri, setBellUri] = useState("");
   const [isSounds, setIsSounds] = useState(true)
   const [winner, setWinner] = useState("")
   const [isFinished, setIsFinished] = useState(false)
@@ -140,12 +140,11 @@ export default function FightScreen() {
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   const checkCustomSounds = async () => {
-    const b = await LocalStorage.getItem('bellSound')
-    const s = await LocalStorage.getItem("isSounds")
-
+    const b = await storage.get<string>('bellSound')
+    const s = await storage.get<boolean>("isSounds")
     const baseURL = (url: string) => `http://localhost:9527/${url}`
     if (b) setBellUri(baseURL(b).replace(/\\/g, '/'));
-    if (s) setIsSounds(JSON.parse(s))
+    if (s !== undefined) setIsSounds(s);
   };
 
   const fightStop = () => {
@@ -211,7 +210,7 @@ export default function FightScreen() {
 
   useEffect(() => {
     if (bellUri) {
-      bellSound = new Howl({ src: [bellUri] })
+      setBellSound(new Howl({ src: [bellUri] }))
     }
   }, [bellUri]);
 

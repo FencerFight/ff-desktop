@@ -20,7 +20,7 @@
   "hotKeys": "热键",
   "history": "历史",
   "start": "开始",
-  "soundsOff": "关掉声音",
+  "soundsOn": "打开声音",
   "addScoreRed": "为红色添加分数",
   "addScoreBlue": "为蓝色添加分数",
   "removeScoreRed": "从红色中取一分",

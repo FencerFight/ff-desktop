@@ -6,6 +6,7 @@ import Fight from "../Fight";
 import Grid from "../Grid";
 import { useState, useEffect } from "react";
 import FightViewerWindow from "../FightViewerWindow";
+import { storage } from "@/utils/storage";
 
 enum Pages {
     SETTINGS = 'settings',
@@ -16,6 +17,7 @@ enum Pages {
 
 export default function Layout() {
     const [page, setPage] = useState<Pages>(Pages.SETTINGS);
+    const [isStorageReady, setIsStorageReady] = useState(false);
 
     // Проверяем URL параметры при загрузке
     useEffect(() => {
@@ -23,6 +25,10 @@ export default function Layout() {
         if (params.get('view') === 'true') {
             setPage(Pages.TIMER_VIEW);
         }
+        (async ()=>{
+            await storage.init()
+            setIsStorageReady(true)
+        })()
     }, []);
 
     const renderPage = () => {
@@ -43,7 +49,7 @@ export default function Layout() {
     // В окне просмотра скрываем навигацию
     const isViewerMode = page === Pages.TIMER_VIEW;
 
-    return (
+    return isStorageReady && (
         <main style={{ background: "var(--bg)" }}>
             {!isViewerMode && (
                 <header className={styles.header}>

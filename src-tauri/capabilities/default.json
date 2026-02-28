@@ -11,6 +11,7 @@
     "fs:allow-copy-file",
     "fs:read-all",
     "fs:write-all",
+    "store:default",
     {
       "identifier": "fs:allow-copy-file",
       "allow": [
@@ -25,6 +26,10 @@
     },
     {
       "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "$APPDATA/**" }]
+    },
+    {
+      "identifier": "fs:allow-remove",
       "allow": [{ "path": "$APPDATA/**" }]
     },
     "core:webview:allow-internal-toggle-devtools",

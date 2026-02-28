@@ -10,6 +10,8 @@ export const hitZonesDefault = {
   arms: 1,
   legs: 1
 }
+
+export type HitZonesType = typeof hitZonesDefault;
 export const fighterDefault: ParticipantType = {
   id: "null",
   name: "—",
@@ -34,6 +36,7 @@ export const hotKeysDefault = {
   start: "Space",
   viewer: "F12"
 }
+export type HotKeysType = typeof hotKeysDefault
 
 export const pairsDefault: ParticipantType[][][] = [[
   // Массив пар бойцов по умолчанию

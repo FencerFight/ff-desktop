@@ -20,7 +20,7 @@
   "hotKeys": "Hot keys",
   "history": "History",
   "start": "Start",
-  "soundsOff": "Turn off sounds",
+  "soundsOn": "Turn on sounds",
   "addScoreRed": "Add a score to red",
   "addScoreBlue": "Add a score to blue",
   "removeScoreRed": "Take a score from red",

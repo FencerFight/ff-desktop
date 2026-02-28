@@ -4,6 +4,7 @@
 pub fn run() {
     let port: u16 = 9527;
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_localhost::Builder::new(port).build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())

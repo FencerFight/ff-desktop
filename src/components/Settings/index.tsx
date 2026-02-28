@@ -9,9 +9,9 @@ import Button from '@/components/Button';
 import Section from '@/components/Section';
 import InputText from '@/components/InputText';
 import { GenderSwitch } from '@/components/GenderSwitch';
-import { generateId, getName, LocalStorage } from '@/utils/helpers';
+import { generateId, getName } from '@/utils/helpers';
 import { useAtom } from 'jotai';
-import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, hotKeysAtom, hotKeysDefault, isPlayoffAtom, isPoolRatingAtom, isRobinAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
+import { currentPairIndexAtom, currentPoolIndexAtom, duelsAtom, fighterDefault, fighterPairsAtom, fightTimeAtom, fightTimeDefault, hitZonesAtom, hitZonesDefault, HitZonesType, hotKeysAtom, hotKeysDefault, HotKeysType, isPlayoffAtom, isPoolRatingAtom, isRobinAtom, languageAtom, pairsDefault, participantsAtom, poolCountDeleteAtom, poolsAtom, sameGenderOnlyAtom } from '@store';
 import { Gender, ParticipantType } from '@typings';
 import { langLabels } from '@constants';
 import toast from 'react-hot-toast';
@@ -23,6 +23,7 @@ import SelectPair from '@/components/SelectPair';
 import { importExcel } from '@/utils/importExcel';
 import DirectP2P from '@/components/DirectP2P';
 import { openFightViewerWindow } from '@/utils/windowManager';
+import { storage } from '@/utils/storage';
 
 type TrashPairProps = {
   setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>;
@@ -170,35 +171,46 @@ function App() {
   const hotKeysActions = [t("addScoreRed"), t("removeScoreRed"), t("addScoreBlue"), t("removeScoreBlue"), t("history"), t("start"), t("viewer")]
   /* ---------- загрузка ---------- */
   useEffect(() => {
-    (async () => {
-      const [t, z, p, h, s, r, c] = await Promise.all([
-        LocalStorage.getItem('fightTime'),
-        LocalStorage.getItem('hitZones'),
-        LocalStorage.getItem('participants'),
-        LocalStorage.getItem('hotKeys'),
-        LocalStorage.getItem("isSounds"),
-        LocalStorage.getItem("isPoolRating"),
-        LocalStorage.getItem("poolCountDelete")
+  (async () => {
+    try {
+      const [t, z, p, h, s, r, c, lang] = await Promise.all([
+        storage.get<number>('fightTime'),
+        storage.get<HitZonesType>('hitZones'),
+        storage.get<ParticipantType[][]>('participants'),
+        storage.get<HotKeysType>('hotKeys'),
+        storage.get<boolean>("isSounds"),
+        storage.get<boolean>("isPoolRating"),
+        storage.get<number>("poolCountDelete"),
+        storage.get<string>('language'),
       ]);
 
-      if (t) setFightTime(Number(t));
-      if (z) setHitZones(JSON.parse(z || '{}'));
-      if (p && !participants[0].length) setParticipants(JSON.parse(p || '[]'));
-      if (h) setHotKeys(JSON.parse(h || '[]'))
-      if (s) setIsSounds(JSON.parse(s))
-      if (r) setIsPoolRating(JSON.parse(r))
-      if (c) setPoolCountDelete(JSON.parse(c))
-    })();
+      if (t) setFightTime(t);
+      if (z) setHitZones(z);
+      if (p && !participants[0].length) setParticipants(p);
+      if (h) setHotKeys(h);
+      if (s !== undefined) setIsSounds(s);
+      if (r !== undefined) setIsPoolRating(r);
+      if (c) setPoolCountDelete(c);
+      if (lang) {
+        // @ts-ignore
+        setLanguage(lang);
+        await i18n.changeLanguage(lang);
+      }
+    } catch (error) {
+      console.error('❌ Failed to load settings:', error);
+      toast.error('Failed to load settings');
+    }
+  })();
   }, []);
 
   /* ---------- сохранение ---------- */
   const saveAll = async () => {
-    await LocalStorage.setItem('fightTime', fightTime.toString());
-    await LocalStorage.setItem('hitZones', JSON.stringify(hitZones));
-    await LocalStorage.setItem('participants', JSON.stringify(participants));
-    await LocalStorage.setItem('hotKeys', JSON.stringify(hotKeys));
-    await LocalStorage.setItem('isPoolRating', JSON.stringify(isPoolRating));
-    await LocalStorage.setItem('poolCountDelete', JSON.stringify(poolCountDelete));
+    await storage.set('fightTime', fightTime);
+    await storage.set('hitZones', hitZones);
+    await storage.set('participants', participants);
+    await storage.set('hotKeys', hotKeys);
+    await storage.set('isPoolRating', isPoolRating);
+    await storage.set('poolCountDelete', poolCountDelete);
     toast.success(t('settingsSaved'));
   };
 
@@ -270,7 +282,7 @@ function App() {
       // 3. Копируем
       await copyFile(sourcePath, destPath);
       toast.success(`Трек загружен:\n${destPath}`);
-      LocalStorage.setItem(`${type}Sound`, destPath)
+      storage.set(`${type}Sound`, destPath)
     } catch (err) {
       // @ts-ignore
       toast.error(err);
@@ -284,16 +296,20 @@ function App() {
     const newLang = langs[newIndex === langs.length ? 0 : newIndex];
 
     await i18n.changeLanguage(newLang);
-    await LocalStorage.setItem('language', newLang);
+    await storage.set('language', newLang);
     // @ts-ignore
     setLanguage(newLang);
   };
 
-  async function deleteCustomSounds(type: 'bell' | 'all') {
+  async function deleteCustomSounds(type: 'bell' | 'all', isNotify=true) {
     if (type === "bell" || type === "all") {
-      const customBellPath = await LocalStorage.getItem('bellSound')
-      if (customBellPath)
+      const customBellPath = await storage.get<string>('bellSound')
+      if (customBellPath) {
         await remove(customBellPath);
+        await storage.delete('bellSound')
+        if (isNotify)
+          toast.success(t('reset'))
+      }
     }
   }
 
@@ -301,28 +317,19 @@ function App() {
     setFightTime(fightTimeDefault)
     setHitZones(hitZonesDefault)
     setHotKeys(hotKeysDefault)
-    await deleteCustomSounds("all")
-    await LocalStorage.clear();
+    setIsPoolRating(true)
+    setPoolCountDelete(1)
+    await deleteCustomSounds("all", false)
+    await storage.clear()
 
     toast.success(t('reset'));
   }
 
   useEffect(()=>{
     (async ()=>{
-      await LocalStorage.setItem("isSounds", String(isSounds))
+      await storage.set('isSounds', isSounds);
     })()
   }, [isSounds])
-
-  useEffect(() => {
-    (async () => {
-      const savedLang = await LocalStorage.getItem('language');
-      if (savedLang) {
-        // @ts-ignore
-        setLanguage(savedLang);
-        await i18n.changeLanguage(savedLang)
-      }
-    })();
-  }, []);
 
   return (
     <div className={styles.container}>
@@ -443,7 +450,7 @@ function App() {
         {/* --- 4. Системные звуки --- */}
         <Section title={t('sounds')}>
           <Button onClick={() => pickSound('bell')} title={t('changeBellSound')} />
-          <Switch title={t("soundsOff")} value={isSounds} setValue={setIsSounds} />
+          <Switch title={t("soundsOn")} value={isSounds} setValue={setIsSounds} />
           <Button onClick={()=>deleteCustomSounds("all")} style={{ marginTop: 10 }} stroke>
             <RefreshCw size={28} color="var(--fg)" />
           </Button>
