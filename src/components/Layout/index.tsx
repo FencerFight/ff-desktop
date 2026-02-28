@@ -1,5 +1,5 @@
 // components/Layout/index.tsx
-import { Network, Radio, RadioTower, Settings, Timer } from "lucide-react";
+import { Network, Radio, Settings, Timer } from "lucide-react";
 import styles from "./index.module.css"
 import Setting from "../Settings";
 import Fight from "../Fight";
