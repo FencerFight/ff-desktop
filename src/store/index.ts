@@ -1,5 +1,6 @@
 // store.ts
 import { Gender, ParticipantPlayoffType, ParticipantType } from '@/typings';
+import { generateId } from '@/utils/helpers';
 import { atom } from 'jotai';
 
 export const fightTimeDefault = 90;
@@ -36,8 +37,8 @@ export const hotKeysDefault = {
 
 export const pairsDefault: ParticipantType[][][] = [[
   // Массив пар бойцов по умолчанию
-  [{ ...fighterDefault, name: 'Fighter A', gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter B', gender: Gender.MALE }],
-  [{ ...fighterDefault, name: 'Fighter C', gender: Gender.FEMALE }, { ...fighterDefault, name: 'Fighter D', gender: Gender.FEMALE }]
+  [{ ...fighterDefault, name: 'Fighter A', id: generateId("Fighter A"), gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter B', id: generateId("Fighter B"), gender: Gender.MALE }],
+  [{ ...fighterDefault, name: 'Fighter C', id: generateId("Fighter C"), gender: Gender.MALE }, { ...fighterDefault, name: 'Fighter D', id: generateId("Fighter D"), gender: Gender.MALE }]
 ]]
 
 // Основные атомы таймера

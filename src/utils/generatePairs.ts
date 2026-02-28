@@ -48,7 +48,8 @@ export const generatePairs = (
     const sorted = [...participants].sort((a, b) => {
       const scoreA = a.buchholz + a.draws * 0.5;
       const scoreB = b.buchholz + b.draws * 0.5;
-      return scoreB - scoreA;
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return a.id.localeCompare(b.id);
     });
 
     // 2. Фильтрация по полу
@@ -66,10 +67,23 @@ export const generatePairs = (
       for (let i = 0; i < group.length; i++) {
         const p1 = group[i];
         if (used.has(p1.id)) continue;
-
+        const candidates = [];
+        for (let j = i + 1; j < group.length; j++) {
+          if (!used.has(group[j].id)) candidates.push(j);
+        }
+        // Fisher-Yates shuffle
+        const shuffle = <T>(array: T[]): T[] => {
+          const result = [...array];
+          for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+          }
+          return result;
+        };
+        const shuffledCandidates = shuffle(candidates);
         // ищем первого подходящего соперника
         let found = -1;
-        for (let j = i + 1; j < group.length; j++) {
+        for (const j of shuffledCandidates) {
           const p2 = group[j];
           if (used.has(p2.id)) continue;
           // не играли ли они уже?

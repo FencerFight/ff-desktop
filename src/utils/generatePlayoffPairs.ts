@@ -1,4 +1,6 @@
 import { ParticipantPlayoffType, ParticipantType } from "@/typings";
+import i18n from './i18n';
+import toast from 'react-hot-toast';
 
 function createPairsByStrength(participants: ParticipantPlayoffType[]): ParticipantPlayoffType[][] {
   // Сортируем участников по силе (от сильного к слабому)
@@ -24,6 +26,10 @@ function createPairsByStrength(participants: ParticipantPlayoffType[]): Particip
     const weak = sortedParticipants[length - 1 - i];
 
     pairs.push([strong, weak]);
+  }
+
+  if (length % 2 !== 0) {
+    toast.error(`${i18n.t("withoutPair")}: ${sortedParticipants[Math.floor(length / 2)].name}`, { duration: 8000 });
   }
 
   return pairs;

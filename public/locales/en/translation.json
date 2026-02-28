@@ -95,5 +95,6 @@
   "p2pUnknownType": "Unknown data type",
   "p2pSignalCopied": "📋 Signal copied to clipboard",
   "p2pDisconnected": "Disconnected",
-  "p2pSendMyDataToServer": "📤 Send My Data to Server"
+  "p2pSendMyDataToServer": "📤 Send My Data to Server",
+  "withoutPair": "Left without an opponent"
 }

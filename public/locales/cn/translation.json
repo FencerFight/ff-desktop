@@ -95,5 +95,6 @@
   "p2pUnknownType": "未知数据类型",
   "p2pSignalCopied": "📋 信号已复制到剪贴板",
   "p2pDisconnected": "已断开连接",
-  "p2pSendMyDataToServer": "📤 将我的数据发送到服务器"
+  "p2pSendMyDataToServer": "📤 将我的数据发送到服务器",
+  "withoutPair": "无对手"
 }
