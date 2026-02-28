@@ -1,5 +1,5 @@
 // components/Layout/index.tsx
-import { Network, Settings, Timer } from "lucide-react";
+import { Network, Radio, RadioTower, Settings, Timer } from "lucide-react";
 import styles from "./index.module.css"
 import Setting from "../Settings";
 import Fight from "../Fight";
@@ -82,7 +82,9 @@ export default function Layout() {
                             <Network size={28} />
                         </button>
                     </div>
-                    <Button stroke onClick={()=>setShowP2P(!showP2P)} style={{ minWidth: "8px", position: "absolute", top: "12px", right: "10px" }}>P2P</Button>
+                    <Button stroke onClick={()=>setShowP2P(!showP2P)} style={{ minWidth: "8px", position: "absolute", top: "12px", right: "15px", padding: "10px 10px" }}>
+                        <Radio size={28} color="var(--fg)" />
+                    </Button>
                 </header>
             )}
 

@@ -257,6 +257,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     };
 
     peer.send(JSON.stringify(dataToSend));
+    toast.success(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`)
     addMessage(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`);
   };
 
@@ -265,7 +266,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
       type: 'pool',
       payload: {
         poolIndex,
-        isPoolPlayoff: isPlayoffRef.current[poolIndex],  // ← Ref!
+        isPoolPlayoff: isPlayoffRef.current[poolIndex],
         duels: duelsRef.current,
         fighterPairs: fighterPairsRef.current,
         pools: poolsRef.current,
@@ -275,6 +276,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
     };
 
     peer.send(JSON.stringify(dataToSend));
+    toast.success(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`)
     addMessage(`${t('p2pDataSent')} ${targetPeerId.substring(0, 8)}...`);
   };
 
@@ -350,6 +352,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
 
     try {
       serverConn.peer.send(JSON.stringify(requestData));
+      toast.success(t('p2pRequestSyncSent'))
       addMessage(t('p2pRequestSyncSent'));
     } catch (err) {
       console.error('Failed to send request-sync:', err);
@@ -490,7 +493,7 @@ export default function DirectP2P({ onPeerConnected }: DirectP2PProps) {
         }
 
         try {
-          toast(`${t('p2pSendingFullSync')} ${fromPeerId.substring(0, 8)}...`)
+          toast.success(`${t('p2pSendingFullSync')} ${fromPeerId.substring(0, 8)}...`)
           addMessage(`${t('p2pSendingFullSync')} ${fromPeerId.substring(0, 8)}...`);
           sendFullDataToPeer(targetPeer.peer, fromPeerId);
         } catch (err) {
