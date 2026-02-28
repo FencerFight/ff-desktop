@@ -21,7 +21,6 @@ import InputNumber from '@/components/InputNumber';
 import TimePicker from '@/components/TimePicker';
 import SelectPair from '@/components/SelectPair';
 import { importExcel } from '@/utils/importExcel';
-import DirectP2P from '@/components/DirectP2P';
 import { openFightViewerWindow } from '@/utils/windowManager';
 import { storage } from '@/utils/storage';
 
