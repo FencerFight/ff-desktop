@@ -3,39 +3,36 @@ import { ParticipantType } from "@/typings";
 
 export const generatePairs = (
   participants: ParticipantType[],
-  isRobin: boolean,
+  isSwiss: boolean,
   poolIndex: number,
   setFighterPairs: React.Dispatch<React.SetStateAction<ParticipantType[][][]>>,
-  setCurrentPairIndex: React.Dispatch<React.SetStateAction<number[]>>
+  setCurrentPairIndex: React.Dispatch<React.SetStateAction<number[]>>,
 ): ParticipantType[][][] => {
-
   let pairs: ParticipantType[][][] = [];
 
   /* ---------- ОЛИМПИЙСКАЯ ---------- */
-  if (!isRobin) {
+  if (!isSwiss) {
     let shuffled = [...participants].sort(() => Math.random() - 0.5);
 
     const filter = (group: ParticipantType[]) => {
       for (let i = 0; i < group.length - 1; i += 2) {
-        if (!pairs[poolIndex])
-          pairs[poolIndex] = []
+        if (!pairs[poolIndex]) pairs[poolIndex] = [];
         pairs[poolIndex].push([group[i], group[i + 1]]);
       }
       if (group.length % 2 !== 0) {
         pairs[poolIndex].push([
           group[group.length - 1],
           {
-            ...fighterDefault
+            ...fighterDefault,
           },
         ]);
       }
     };
 
     filter(shuffled);
-  }
+  } else if (isSwiss) {
 
   /* ---------- КРУГОВАЯ ---------- */
-  else if (isRobin) {
     // 1. Сортируем по очкам (wins + 0.5*draws)
     const sorted = [...participants].sort((a, b) => {
       const scoreA = a.buchholz + a.draws * 0.5;
@@ -43,7 +40,6 @@ export const generatePairs = (
       if (scoreB !== scoreA) return scoreB - scoreA;
       return a.id.localeCompare(b.id);
     });
-
 
     const groups = [sorted];
 
@@ -74,7 +70,8 @@ export const generatePairs = (
           const p2 = group[j];
           if (used.has(p2.id)) continue;
           // не играли ли они уже?
-          const played = p1.opponents?.includes(p2.id) || p2.opponents?.includes(p1.id);
+          const played =
+            p1.opponents?.includes(p2.id) || p2.opponents?.includes(p1.id);
           if (!played) {
             found = j;
             break;
@@ -91,14 +88,13 @@ export const generatePairs = (
           tempPairs.push([
             p1,
             {
-              ...fighterDefault
+              ...fighterDefault,
             },
           ]);
           used.add(p1.id);
         }
       }
-      if (!pairs[poolIndex])
-        pairs[poolIndex] = []
+      if (!pairs[poolIndex]) pairs[poolIndex] = [];
       pairs[poolIndex].push(...tempPairs);
     });
   }
@@ -117,11 +113,15 @@ export const generatePairs = (
     });
   }
 
-  setFighterPairs(state=>{
-    const buf = [...state]
-    buf[poolIndex] = pairs[poolIndex]
-    return buf
+  setFighterPairs((state) => {
+    const buf = [...state];
+    buf[poolIndex] = pairs[poolIndex];
+    return buf;
   });
-  setCurrentPairIndex(state=>{ const buf = [...state]; buf[poolIndex] = 0; return buf });
+  setCurrentPairIndex((state) => {
+    const buf = [...state];
+    buf[poolIndex] = 0;
+    return buf;
+  });
   return pairs;
 };

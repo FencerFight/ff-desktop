@@ -47,7 +47,7 @@ export const pairsDefault: ParticipantType[][][] = [[
 export const fightTimeAtom = atom(fightTimeDefault); // Время боя в секундах (по умолчанию 3 минуты)
 export const isRunningAtom = atom(false); // Состояние таймера (запущен/остановлен)
 export const languageAtom = atom<"en"|"ru"|"cn">('ru'); // Язык интерфейса ('en', 'ru', 'cn')
-export const isRobinAtom = atom(true); // Швейцарская система
+export const isSwissAtom = atom(true); // Швейцарская система
 
 export const historyAtom = atom<{ score1: number, score2: number }[]>([]);
 export const score1Atom = atom(0); // Количество очков 1 бойца

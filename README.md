@@ -1,6 +1,6 @@
-# 🏆 Fencer Fight — Professional Tournament Management System
+# 🏆 Clash — Professional Tournament Management System
 
-**Fencer Fight** is a powerful and intuitive application for organizing and managing sports tournaments of any scale. Designed with the needs of referees, organizers, and participants in mind, it provides a complete competition management cycle — from participant registration to the final podium.
+**Clash** is a powerful and intuitive application for organizing and managing sports tournaments of any scale. Designed with the needs of referees, organizers, and participants in mind, it provides a complete competition management cycle — from participant registration to the final podium.
 
 ---
 
@@ -85,4 +85,4 @@
 
 ---
 
-**Fencer Fight** is more than just software — it's your reliable assistant in the world of sports tournaments. From the first gong to the final award ceremony, conduct competitions at the highest level! 🏆
+**Clash** is more than just software — it's your reliable assistant in the world of sports tournaments. From the first gong to the final award ceremony, conduct competitions at the highest level! 🏆

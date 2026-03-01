@@ -64,6 +64,7 @@ export default function FightScreen() {
   const [playoffIndex] = useAtom(playoffIndexAtom)
   const [playoffMatchIndex] = useAtom(playoffMatchIndexAtom)
 
+  const prevPairIndexRef = useRef(currentPairIndex)
   const [isOpen, setIsOpen] = useState(false)
   const [isHistory, setIsHistory] = useState(false)
   const [timeLeft, setTimeLeft] = useState(fightTime);
@@ -333,8 +334,9 @@ export default function FightScreen() {
   }, [fightTime]);
 
   useEffect(() => {
-    resetFight();
-  }, [currentPairIndex]);
+    if (prevPairIndexRef.current[currentPoolIndex] !== currentPairIndex[currentPoolIndex])
+      resetFight();
+  }, [currentPairIndex, currentPoolIndex]);
 
   const fighterData = [
     {
@@ -390,19 +392,21 @@ export default function FightScreen() {
             <Minus size={28} color="var(--fg)" />
           </button>
 
-          <Counter
-            label={translate('protests')}
-            value={data.protests}
-            onInc={data.setProtests}
-            onDec={data.setProtests}
-          />
+          <div className={styles.warnings} style={i === 0 ? { flexDirection: "row-reverse" }:{}}>
+            <Counter
+              label={translate('protests')}
+              value={data.protests}
+              onInc={data.setProtests}
+              onDec={data.setProtests}
+            />
 
-          <Counter
-            label={translate('warnings')}
-            value={data.warnings}
-            onInc={data.setWarnings}
-            onDec={data.setWarnings}
-          />
+            <Counter
+              label={translate('warnings')}
+              value={data.warnings}
+              onInc={data.setWarnings}
+              onDec={data.setWarnings}
+            />
+          </div>
         </div>
       ))}
 

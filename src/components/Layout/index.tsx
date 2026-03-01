@@ -33,6 +33,25 @@ export default function Layout() {
             await storage.init()
             setIsStorageReady(true)
         })()
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+          const { code } = event;
+          if (code === "Tab") {
+            setPage(state=>{
+                if (state === Pages.SETTINGS)
+                    return Pages.TIMER
+                else if (state === Pages.TIMER)
+                    return Pages.GRID
+                return Pages.SETTINGS
+            })
+          }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+          document.removeEventListener('keydown', handleKeyDown);
+        };
     }, []);
 
     const renderPage = () => {
