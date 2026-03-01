@@ -56,7 +56,7 @@ export default function TimePicker({
   // Обработчики для минут
   const handleMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    if (newValue === '' || /^\d*$/.test(newValue)) {
+    if ((newValue === '' || /^\d*$/.test(newValue)) && Number(newValue) < 60) {
       setMinutesValue(newValue);
     }
   };
@@ -74,8 +74,10 @@ export default function TimePicker({
     if (disabled) return;
     const currentMins = parseInt(minutesValue, 10) || 0;
     const newMins = Math.min(currentMins + 1, Math.floor(max / 60));
-    setMinutesValue(newMins.toString());
-    updateTotalValue(newMins, parseInt(secondsValue, 10));
+    if (newMins < 60) {
+      setMinutesValue(newMins.toString());
+      updateTotalValue(newMins, parseInt(secondsValue, 10));
+    }
   };
 
   const decrementMinutes = () => {
@@ -110,6 +112,8 @@ export default function TimePicker({
 
     if (newSecs >= 60) {
       carryOverMins = Math.floor(newSecs / 60);
+      if (Number(minutesValue) === 59)
+        return
       newSecs = newSecs % 60;
     }
 
